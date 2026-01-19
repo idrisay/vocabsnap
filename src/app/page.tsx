@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import VocabularyInput from '@/components/VocabularyInput';
+import Dashboard from '@/components/Dashboard';
 import FlashCard from '@/components/FlashCard';
 import ProgressBar from '@/components/ProgressBar';
 import QuizControls from '@/components/QuizControls';
@@ -111,28 +111,20 @@ export default function Home() {
         <AuthModal onLogin={handleLogin} />
       ) : (
         <main className="relative z-10 container mx-auto px-4 py-12 min-h-screen flex flex-col justify-center">
-          {/* Header */}
-          <div className="absolute top-6 right-6 flex items-center gap-4">
-            <span className="text-white/40 text-sm">
-              Logged in as <span className="text-white/80">{user.nickname}</span>
-            </span>
-            <button 
-              onClick={handleLogout}
-              className="px-3 py-1.5 bg-white/5 hover:bg-red-500/20 hover:text-red-200 border border-white/10 rounded-lg text-xs text-gray-400 transition-all"
-            >
-              Logout
-            </button>
-          </div>
-
+          
           {!isQuizMode ? (
-            <VocabularyInput onSubmit={handleVocabularySubmit} />
+            <Dashboard 
+              user={user} 
+              onStartQuiz={handleVocabularySubmit} 
+              onLogout={handleLogout}
+            />
           ) : (
             <>
               <button
                 onClick={handleRestart}
                 className="absolute top-4 left-4 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-300 text-sm transition-all"
               >
-                ← Back to Input
+                ← Back to Dashboard
               </button>
               
               <ProgressBar

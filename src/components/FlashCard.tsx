@@ -31,7 +31,7 @@ export default function FlashCard({ vocabulary, currentIndex, total }: FlashCard
         {/* Front Side */}
         <div className="absolute inset-0 backface-hidden">
           <div className="w-full h-full backdrop-blur-xl bg-gradient-to-br from-purple-900/40 to-blue-900/40 rounded-3xl p-8 shadow-2xl border border-white/20 flex flex-col items-center justify-center">
-            <span className="text-xs uppercase tracking-widest text-purple-400 mb-4">German Word</span>
+            <span className="text-xs uppercase tracking-widest text-purple-400 mb-4">Target Word</span>
             <h2 className="text-4xl md:text-5xl font-bold text-white text-center mb-4">
               {vocabulary.word}
             </h2>
@@ -50,7 +50,7 @@ export default function FlashCard({ vocabulary, currentIndex, total }: FlashCard
               
               <div>
                 <span className="text-xs uppercase tracking-widest text-green-400">Example</span>
-                <p className="text-lg text-gray-200 italic mt-1">&ldquo;{vocabulary.germanExample}&rdquo;</p>
+                <p className="text-lg text-gray-200 italic mt-1">&ldquo;{vocabulary.example}&rdquo;</p>
               </div>
               
               <div>

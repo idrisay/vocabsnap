@@ -1,8 +1,9 @@
 export interface Vocabulary {
   word: string;
   meaning: string;
-  germanExample: string;
+  example: string;
   memoryTip: string;
+  _id?: string; // Add ID while we are at it
 }
 
 export interface QuizState {
