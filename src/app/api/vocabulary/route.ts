@@ -11,10 +11,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
 
+    const clusterId = searchParams.get('clusterId');
+
+    const query: any = { userId };
+    if (clusterId) {
+        query.clusterId = new ObjectId(clusterId);
+    }
+
     const db = client.db('vocabsnap');
     const vocabularies = await db
       .collection('vocabularies')
-      .find({ userId: userId })
+      .find(query)
       .sort({ createdAt: -1 })
       .toArray();
 
@@ -54,6 +61,7 @@ export async function POST(request: Request) {
         .filter((item: any) => !existingWords.has(item.word))
         .map((item: any) => ({
           userId,
+          clusterId: body.clusterId ? new ObjectId(body.clusterId) : null,
           word: item.word,
           meaning: item.meaning,
           example: item.example || '',
@@ -73,7 +81,7 @@ export async function POST(request: Request) {
     }
 
     // Handle Single Insert (Existing logic)
-    const { userId, word, meaning, example, memoryTip } = body;
+    const { userId, word, meaning, example, memoryTip, clusterId } = body;
 
     if (!userId || !word || !meaning) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -87,6 +95,7 @@ export async function POST(request: Request) {
 
     const newVocab = {
       userId,
+      clusterId: clusterId ? new ObjectId(clusterId) : null,
       word,
       meaning,
       example: example || '',

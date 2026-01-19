@@ -9,6 +9,8 @@ interface DashboardProps {
 
 export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProps) {
   const [vocabularies, setVocabularies] = useState<Vocabulary[]>([]);
+  const [clusters, setClusters] = useState<any[]>([]);
+  const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'manual' | 'csv'>('manual');
@@ -16,10 +18,10 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
   // Modal State
   const [modal, setModal] = useState<{
     isOpen: boolean;
-    type: 'delete' | 'alert' | 'success'; 
+    type: 'delete' | 'alert' | 'success' | 'input'; 
     title: string;
     message: string;
-    onConfirm?: () => void;
+    onConfirm?: (inputValue?: string) => void;
   }>({ isOpen: false, type: 'alert', title: '', message: '' });
 
   // Form State
@@ -30,14 +32,35 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
   
   // CSV State
   const [csvText, setCsvText] = useState('');
+  const [newClusterName, setNewClusterName] = useState('');
+
+  useEffect(() => {
+    fetchClusters();
+  }, [user._id]);
 
   useEffect(() => {
     fetchVocabularies();
-  }, [user._id]);
+  }, [user._id, selectedClusterId]);
+
+  const fetchClusters = async () => {
+    try {
+      const res = await fetch(`/api/clusters?userId=${user._id}`);
+      if (res.ok) {
+        setClusters(await res.json());
+      }
+    } catch (error) {
+       console.error('Failed to fetch clusters', error);
+    }
+  };
 
   const fetchVocabularies = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`/api/vocabulary?userId=${user._id}`);
+      const url = selectedClusterId 
+        ? `/api/vocabulary?userId=${user._id}&clusterId=${selectedClusterId}`
+        : `/api/vocabulary?userId=${user._id}`;
+      
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setVocabularies(data);
@@ -53,6 +76,44 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
 
   const showAlert = (title: string, message: string, type: 'alert' | 'success' = 'alert') => {
       setModal({ isOpen: true, type, title, message });
+  };
+
+  const showInputModal = (title: string, message: string, onConfirm: (val: string) => void) => {
+      setNewClusterName('');
+      setModal({ isOpen: true, type: 'input', title, message, onConfirm: (val) => onConfirm(val || '') });
+  };
+
+  const handleAddCluster = async (name: string) => {
+     if (!name.trim()) return;
+     try {
+         const res = await fetch('/api/clusters', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ userId: user._id, name: name.trim() })
+         });
+         if (res.ok) {
+             const newCluster = await res.json();
+             setClusters([...clusters, newCluster]);
+             setSelectedClusterId(newCluster._id);
+             closeModal();
+         }
+     } catch (e) {
+         showAlert('Error', 'Failed to create cluster');
+     }
+  };
+
+  const deleteCluster = async () => {
+      if (!selectedClusterId) return;
+      try {
+          const res = await fetch(`/api/clusters?id=${selectedClusterId}`, { method: 'DELETE' });
+          if (res.ok) {
+              setClusters(clusters.filter(c => c._id !== selectedClusterId));
+              setSelectedClusterId(null);
+              closeModal();
+          }
+      } catch (e) {
+          showAlert('Error', 'Failed to delete cluster');
+      }
   };
 
   const handleAddWord = async (e: React.FormEvent) => {
@@ -74,6 +135,7 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user._id,
+          clusterId: selectedClusterId,
           word: trimmedWord,
           meaning: meaning.trim(),
           example: example.trim(),
@@ -105,6 +167,7 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
     let insideQuote = false;
 
     for (let i = 0; i < text.length; i++) {
+        // ... (Parsing logic kept same)
       if (text[i] === '"') {
         insideQuote = !insideQuote;
       } else if (text[i] === ',' && !insideQuote) {
@@ -159,6 +222,7 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user._id,
+          clusterId: selectedClusterId,
           items // Bulk insert
         }),
       });
@@ -209,7 +273,7 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-8 relative">
+    <div className="w-full max-w-7xl mx-auto space-y-8 relative">
        {/* Generic Modal */}
        {modal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -220,9 +284,27 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
             }`}>
                 {modal.title}
             </h3>
-            <p className="text-gray-300 mb-6 whitespace-pre-wrap">
-              {modal.message}
-            </p>
+            
+            {modal.type === 'input' ? (
+                <div className="mb-6">
+                    <p className="text-gray-300 mb-3">{modal.message}</p>
+                    <input 
+                        className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="e.g. German A1"
+                        autoFocus
+                        value={newClusterName}
+                        onChange={(e) => setNewClusterName(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') modal.onConfirm?.(newClusterName);
+                        }}
+                    />
+                </div>
+            ) : (
+                <p className="text-gray-300 mb-6 whitespace-pre-wrap">
+                {modal.message}
+                </p>
+            )}
+
             <div className="flex gap-3 justify-end">
               <button
                 onClick={closeModal}
@@ -230,12 +312,14 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
               >
                 {modal.type === 'delete' ? 'Cancel' : 'Close'}
               </button>
-              {modal.type === 'delete' && (
+              {(modal.type === 'delete' || modal.type === 'input') && (
                 <button
-                    onClick={modal.onConfirm}
-                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors font-medium shadow-lg shadow-red-500/20"
+                    onClick={() => modal.type === 'input' ? modal.onConfirm?.(newClusterName) : modal.onConfirm?.()}
+                    className={`px-4 py-2 text-white rounded-xl transition-colors font-medium shadow-lg ${
+                        modal.type === 'delete' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-purple-600 hover:bg-purple-500 shadow-purple-500/20'
+                    }`}
                 >
-                    Delete
+                    {modal.type === 'delete' ? 'Delete' : 'Create'}
                 </button>
               )}
             </div>
@@ -250,18 +334,10 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
             Willkommen, {user.nickname}
           </h1>
           <p className="text-gray-400 mt-1">
-            You have {vocabularies.length} words in your collection
+            Organize and quiz your vocabulary.
           </p>
         </div>
         <div className="flex items-center gap-3">
-            <button
-            onClick={() => onStartQuiz(vocabularies)}
-            disabled={vocabularies.length === 0}
-            className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-semibold shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-            <span>Start Quiz</span>
-            <span className="text-xl">→</span>
-            </button>
             <button 
                 onClick={onLogout}
                 className="px-4 py-3 bg-white/5 hover:bg-red-500/20 hover:text-red-200 border border-white/10 rounded-xl text-gray-400 transition-all"
@@ -272,155 +348,231 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
       </div>
 
       <div className="grid md:grid-cols-12 gap-8">
-        {/* Add Widget (Left) */}
-        <div className="md:col-span-4 space-y-4">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm sticky top-6">
-            <div className="flex items-center gap-4 mb-6 border-b border-white/10 pb-4">
-              <button 
-                onClick={() => setActiveTab('manual')}
-                className={`text-sm font-semibold transition-colors ${activeTab === 'manual' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-              >
-                Manual Entry
-              </button>
-              <button 
-                onClick={() => setActiveTab('csv')}
-                className={`text-sm font-semibold transition-colors ${activeTab === 'csv' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-              >
-                CSV Import
-              </button>
-            </div>
-            
-            {activeTab === 'manual' ? (
-              <form onSubmit={handleAddWord} className="space-y-4">
-                <div>
-                  <label className="text-xs font-uppercase text-gray-500 font-semibold tracking-wider">TARGET WORD</label>
-                  <input
-                    value={word}
-                    onChange={(e) => setWord(e.target.value)}
-                    placeholder="e.g., Hola (Spanish), Bonjour (French)"
-                    className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-xs font-uppercase text-gray-500 font-semibold tracking-wider">MEANING</label>
-                  <input
-                    value={meaning}
-                    onChange={(e) => setMeaning(e.target.value)}
-                    placeholder="e.g., Hello"
-                    className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-uppercase text-gray-500 font-semibold tracking-wider">EXAMPLE (OPTIONAL)</label>
-                  <textarea
-                    value={example}
-                    onChange={(e) => setExample(e.target.value)}
-                    placeholder="Short sentence in target language..."
-                    rows={2}
-                    className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-uppercase text-gray-500 font-semibold tracking-wider">MEMORY TIP (OPTIONAL)</label>
-                  <input
-                    value={tip}
-                    onChange={(e) => setTip(e.target.value)}
-                    placeholder="e.g., Starts with Sch..."
-                    className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold rounded-xl shadow-lg transition-all transform active:scale-95"
-                >
-                  {submitting ? 'Adding...' : 'Add to List'}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleImportCSV} className="space-y-4">
-                <div>
-                  <label className="text-xs font-uppercase text-gray-500 font-semibold tracking-wider">PASTE CSV TEXT</label>
-                  <p className="text-xs text-gray-400 mb-2">Format: Word, Meaning, Example, Tip</p>
-                  <textarea
-                    value={csvText}
-                    onChange={(e) => setCsvText(e.target.value)}
-                    placeholder={'obwohl,although,"Example...","Tip..."\ntrotzdem,anyway...'}
-                    rows={12}
-                    className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all resize-none"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold rounded-xl shadow-lg transition-all transform active:scale-95"
-                >
-                  {submitting ? 'Importing...' : 'Import Vocabulary'}
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
         
-        {/* List Widget (Right) */}
-        <div className="md:col-span-8">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm min-h-[500px]">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center justify-between">
-              <span>Your Collection</span>
-              <span className="text-sm font-normal text-gray-400 bg-white/5 px-2 py-1 rounded-md">{vocabularies.length} words</span>
-            </h2>
-
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : vocabularies.length === 0 ? (
-              <div className="text-center py-20 text-gray-500">
-                <p className="mb-2 text-4xl">📚</p>
-                <p>No words added yet.</p>
-                <p className="text-sm">Use the form on the left to add your first word!</p>
-              </div>
-            ) : (
-                <div className="space-y-3">
-                {vocabularies.map((vocab: any) => (
-                  <div 
-                    key={vocab._id}
-                    className="group flex items-start gap-4 p-4 bg-black/20 hover:bg-black/30 border border-white/5 hover:border-white/10 rounded-xl transition-all"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-3 mb-1">
-                        <h3 className="text-lg font-bold text-white truncate">{vocab.word}</h3>
-                        <span className="text-purple-300 truncate">{vocab.meaning}</span>
-                      </div>
-                      {(vocab.example || vocab.memoryTip) && (
-                        <div className="text-sm text-gray-500 space-y-0.5">
-                          {vocab.example && <p>Ex: {vocab.example}</p>}
-                          {vocab.memoryTip && <p className="text-yellow-500/70 italic">Tip: {vocab.memoryTip}</p>}
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={(e) => requestDelete(vocab._id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                      title="Delete word"
+        {/* Sidebar (Clusters) */}
+        <div className="md:col-span-3 space-y-4">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm sticky top-6">
+                <div className="flex items-center justify-between mb-4 px-2">
+                    <h2 className="text-lg font-semibold text-gray-200">Decks</h2>
+                    <button 
+                        onClick={() => showInputModal('New Deck', 'Enter a name for your new deck:', handleAddCluster)}
+                        className="p-1 hover:bg-white/10 rounded-lg text-purple-400 hover:text-purple-300 transition-colors"
+                        title="Create Deck"
                     >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
                     </button>
-                  </div>
-                ))}
-              </div>
+                </div>
+                <div className="space-y-2">
+                    <button
+                        onClick={() => setSelectedClusterId(null)}
+                        className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium flex items-center justify-between ${
+                            selectedClusterId === null 
+                            ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20' 
+                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                        }`}
+                    >
+                        <span>All Words</span>
+                    </button>
+                    {clusters.map((c: any) => (
+                        <button
+                            key={c._id}
+                            onClick={() => setSelectedClusterId(c._id)}
+                            className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium truncate ${
+                                selectedClusterId === c._id 
+                                ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/20' 
+                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                            }`}
+                        >
+                            {c.name}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="md:col-span-9 space-y-8">
+            
+            {/* Context Header */}
+            {selectedClusterId && (
+                <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl p-4">
+                     <h2 className="text-xl font-bold text-white">
+                        {clusters.find(c => c._id === selectedClusterId)?.name || 'Deck'}
+                     </h2>
+                     <button 
+                        onClick={() => setModal({
+                            isOpen: true,
+                            type: 'delete',
+                            title: 'Delete Deck?',
+                            message: 'This will delete the deck and all words inside it. Are you sure?',
+                            onConfirm: deleteCluster
+                        })}
+                        className="text-red-400 hover:text-red-300 text-sm font-medium px-3 py-1 hover:bg-red-500/10 rounded-lg transition-colors"
+                     >
+                        Delete Deck
+                     </button>
+                </div>
             )}
-          </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+                {/* Add Widget */}
+                <div className="space-y-4">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                        <div className="flex items-center gap-4 mb-6 border-b border-white/10 pb-4">
+                        <button 
+                            onClick={() => setActiveTab('manual')}
+                            className={`text-sm font-semibold transition-colors ${activeTab === 'manual' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                        >
+                            Manual Entry
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('csv')}
+                            className={`text-sm font-semibold transition-colors ${activeTab === 'csv' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                        >
+                            CSV Import
+                        </button>
+                        </div>
+                        
+                        {activeTab === 'manual' ? (
+                        <form onSubmit={handleAddWord} className="space-y-4">
+                            <div>
+                            <label className="text-xs font-uppercase text-gray-500 font-semibold tracking-wider">TARGET WORD</label>
+                            <input
+                                value={word}
+                                onChange={(e) => setWord(e.target.value)}
+                                placeholder="e.g., Hola"
+                                className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                                required
+                            />
+                            </div>
+                            
+                            <div>
+                            <label className="text-xs font-uppercase text-gray-500 font-semibold tracking-wider">MEANING</label>
+                            <input
+                                value={meaning}
+                                onChange={(e) => setMeaning(e.target.value)}
+                                placeholder="e.g., Hello"
+                                className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                                required
+                            />
+                            </div>
+
+                            <div>
+                            <label className="text-xs font-uppercase text-gray-500 font-semibold tracking-wider">EXAMPLE</label>
+                            <textarea
+                                value={example}
+                                onChange={(e) => setExample(e.target.value)}
+                                rows={1}
+                                className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all resize-none"
+                            />
+                            </div>
+
+                            <div>
+                            <label className="text-xs font-uppercase text-gray-500 font-semibold tracking-wider">TIP</label>
+                            <input
+                                value={tip}
+                                onChange={(e) => setTip(e.target.value)}
+                                className="w-full mt-1 bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                            />
+                            </div>
+
+                            <button
+                            type="submit"
+                            disabled={submitting}
+                            className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold rounded-xl shadow-lg transition-all transform active:scale-95"
+                            >
+                            {submitting ? 'Adding...' : 'Add to List'}
+                            </button>
+                        </form>
+                        ) : (
+                        <form onSubmit={handleImportCSV} className="space-y-4">
+                            <div>
+                            <label className="text-xs font-uppercase text-gray-500 font-semibold tracking-wider">PASTE CSV TEXT</label>
+                            <textarea
+                                value={csvText}
+                                onChange={(e) => setCsvText(e.target.value)}
+                                placeholder={'Word,Meaning,Example,Tip'}
+                                rows={8}
+                                className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all resize-none"
+                                required
+                            />
+                            </div>
+                            <button
+                            type="submit"
+                            disabled={submitting}
+                            className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold rounded-xl shadow-lg transition-all transform active:scale-95"
+                            >
+                            {submitting ? 'Importing...' : 'Import Vocabulary'}
+                            </button>
+                        </form>
+                        )}
+                    </div>
+                </div>
+
+                {/* List Widget */}
+                <div>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm min-h-[500px]">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold text-white">
+                                Collection
+                                <span className="ml-3 text-xs font-normal text-gray-400 bg-white/5 px-2 py-1 rounded-md">{vocabularies.length} words</span>
+                            </h2>
+                            <button
+                                onClick={() => onStartQuiz(vocabularies)}
+                                disabled={vocabularies.length === 0}
+                                className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-semibold shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Start Quiz
+                            </button>
+                        </div>
+
+                        {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                        ) : vocabularies.length === 0 ? (
+                        <div className="text-center py-20 text-gray-500">
+                            <p className="mb-2 text-4xl">📚</p>
+                            <p>No words found.</p>
+                            {selectedClusterId && <p className="text-sm">Added words will appear here.</p>}
+                        </div>
+                        ) : (
+                            <div className="space-y-3">
+                            {vocabularies.map((vocab: any) => (
+                            <div 
+                                key={vocab._id}
+                                className="group flex items-start gap-4 p-4 bg-black/20 hover:bg-black/30 border border-white/5 hover:border-white/10 rounded-xl transition-all"
+                            >
+                                <div className="flex-1 min-w-0">
+                                <div className="flex items-baseline gap-3 mb-1">
+                                    <h3 className="text-lg font-bold text-white truncate">{vocab.word}</h3>
+                                    <span className="text-purple-300 truncate">{vocab.meaning}</span>
+                                </div>
+                                {(vocab.example || vocab.memoryTip) && (
+                                    <div className="text-sm text-gray-500 space-y-0.5">
+                                    {vocab.example && <p>Ex: {vocab.example}</p>}
+                                    {vocab.memoryTip && <p className="text-yellow-500/70 italic">Tip: {vocab.memoryTip}</p>}
+                                    </div>
+                                )}
+                                </div>
+                                <button
+                                onClick={(e) => requestDelete(vocab._id, e)}
+                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                                title="Delete word"
+                                >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                </button>
+                            </div>
+                            ))}
+                        </div>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
     </div>
