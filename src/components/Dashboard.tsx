@@ -3,7 +3,7 @@ import { Vocabulary } from '@/types/types';
 
 interface DashboardProps {
   user: any;
-  onStartQuiz: (vocabularies: Vocabulary[]) => void;
+  onStartQuiz: (clusterId?: string) => void;
   onLogout: () => void;
 }
 
@@ -338,6 +338,14 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
           </p>
         </div>
         <div className="flex items-center gap-3">
+            <button
+            onClick={() => onStartQuiz(selectedClusterId || undefined)}
+            disabled={vocabularies.length === 0}
+            className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-semibold shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+            <span>Start Quiz</span>
+            <span className="text-xl">→</span>
+            </button>
             <button 
                 onClick={onLogout}
                 className="px-4 py-3 bg-white/5 hover:bg-red-500/20 hover:text-red-200 border border-white/10 rounded-xl text-gray-400 transition-all"
@@ -520,7 +528,7 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
                                 <span className="ml-3 text-xs font-normal text-gray-400 bg-white/5 px-2 py-1 rounded-md">{vocabularies.length} words</span>
                             </h2>
                             <button
-                                onClick={() => onStartQuiz(vocabularies)}
+                                onClick={() => onStartQuiz(selectedClusterId || undefined)}
                                 disabled={vocabularies.length === 0}
                                 className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-semibold shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >

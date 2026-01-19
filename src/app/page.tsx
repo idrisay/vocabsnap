@@ -1,158 +1,74 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import Dashboard from '@/components/Dashboard';
-import FlashCard from '@/components/FlashCard';
-import ProgressBar from '@/components/ProgressBar';
-import QuizControls from '@/components/QuizControls';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AuthModal from '@/components/AuthModal';
-import { Vocabulary } from '@/types/types';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
-  const [user, setUser] = useState<any>(null);
-  const [vocabularies, setVocabularies] = useState<Vocabulary[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [knownWords, setKnownWords] = useState<Set<number>>(new Set());
-  const [isQuizMode, setIsQuizMode] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { user, login, loading } = useAuth();
+  const router = useRouter();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('vocab_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    if (!loading && user) {
+      router.push('/dashboard');
     }
-    setLoading(false);
-  }, []);
+  }, [user, loading, router]);
 
-  const handleLogin = (userData: any) => {
-    setUser(userData);
-    localStorage.setItem('vocab_user', JSON.stringify(userData));
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('vocab_user');
-    handleRestart();
-  };
-
-  const handleVocabularySubmit = (vocabs: Vocabulary[]) => {
-    setVocabularies(vocabs);
-    setCurrentIndex(0);
-    setKnownWords(new Set());
-    setIsQuizMode(true);
-  };
-
-  const handlePrevious = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  }, [currentIndex]);
-
-  const handleNext = useCallback(() => {
-    if (currentIndex < vocabularies.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  }, [currentIndex, vocabularies.length]);
-
-  const handleMarkKnown = () => {
-    const newKnown = new Set(knownWords);
-    newKnown.add(currentIndex);
-    setKnownWords(newKnown);
-    handleNext();
-  };
-
-  const handleMarkUnknown = () => {
-    const newKnown = new Set(knownWords);
-    newKnown.delete(currentIndex);
-    setKnownWords(newKnown);
-    handleNext();
-  };
-
-  const handleRestart = () => {
-    setCurrentIndex(0);
-    setKnownWords(new Set());
-    setIsQuizMode(false);
-    setVocabularies([]);
-  };
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isQuizMode) return;
-      
-      switch (e.key) {
-        case 'ArrowLeft':
-          handlePrevious();
-          break;
-        case 'ArrowRight':
-          handleNext();
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isQuizMode, handlePrevious, handleNext]);
-
-  const isComplete = isQuizMode && currentIndex === vocabularies.length - 1 && knownWords.size === vocabularies.length;
-
-  if (loading) return null; // Prevent flash
+  if (loading) return null; // Or a loading spinner
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-black text-white selection:bg-purple-500/30">
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
 
-      {!user ? (
-        <AuthModal onLogin={handleLogin} />
-      ) : (
-        <main className="relative z-10 container mx-auto px-4 py-12 min-h-screen flex flex-col justify-center">
-          
-          {!isQuizMode ? (
-            <Dashboard 
-              user={user} 
-              onStartQuiz={handleVocabularySubmit} 
-              onLogout={handleLogout}
-            />
-          ) : (
-            <>
-              <button
-                onClick={handleRestart}
-                className="absolute top-4 left-4 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-300 text-sm transition-all"
-              >
-                ← Back to Dashboard
-              </button>
-              
-              <ProgressBar
-                current={currentIndex}
-                total={vocabularies.length}
-                knownCount={knownWords.size}
-              />
-              
-              <FlashCard
-                vocabulary={vocabularies[currentIndex]}
-                currentIndex={currentIndex}
-                total={vocabularies.length}
-              />
-              
-              <QuizControls
-                currentIndex={currentIndex}
-                total={vocabularies.length}
-                onPrevious={handlePrevious}
-                onNext={handleNext}
-                onMarkKnown={handleMarkKnown}
-                onMarkUnknown={handleMarkUnknown}
-                onRestart={handleRestart}
-                isComplete={isComplete}
-              />
-            </>
-          )}
-        </main>
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <AuthModal
+          mode={authMode}
+          onClose={() => setShowAuthModal(false)}
+          onLogin={(userData) => {
+            login(userData);
+            setShowAuthModal(false);
+          }}
+        />
       )}
+
+      {/* Hero Section */}
+      <main className="relative flex flex-col items-center justify-center min-h-screen p-6 text-center">
+        <div className="space-y-8 max-w-2xl animate-in fade-in zoom-in duration-500 slide-in-from-bottom-4">
+          <div className="space-y-2">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 pb-2">
+              VocabSnap
+            </h1>
+            <p className="text-xl text-gray-400">
+              Master any language with effortless flashcards.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button
+              onClick={() => {
+                setAuthMode('login');
+                setShowAuthModal(true);
+              }}
+              className="px-8 py-3 bg-white text-black hover:bg-gray-200 rounded-full font-semibold transition-all transform hover:scale-105 active:scale-95 w-full sm:w-auto"
+            >
+              Login
+            </button>
+            <button
+              onClick={() => {
+                setAuthMode('register');
+                setShowAuthModal(true);
+              }}
+              className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-full font-semibold transition-all transform hover:scale-105 active:scale-95 backdrop-blur-sm w-full sm:w-auto"
+            >
+              Get Started
+            </button>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

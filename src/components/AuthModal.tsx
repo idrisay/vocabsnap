@@ -1,15 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface AuthModalProps {
+  mode?: 'login' | 'register';
   onLogin: (user: any) => void;
+  onClose: () => void;
 }
 
-export default function AuthModal({ onLogin }: AuthModalProps) {
-  const [isLogin, setIsLogin] = useState(true);
+export default function AuthModal({ onLogin, onClose, mode = 'login' }: AuthModalProps) {
+  const [isLogin, setIsLogin] = useState(mode === 'login');
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setIsLogin(mode === 'login');
+  }, [mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,11 +53,27 @@ export default function AuthModal({ onLogin }: AuthModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-gray-900/90 border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+    <div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+        onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+        }}
+    >
+      <div className="w-full max-w-md bg-gray-900 border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+        
+        {/* Close Button */}
+        <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+        >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
         {/* Decorative background blobs */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-500/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-500/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10">
           <h2 className="text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 mb-2">
@@ -109,7 +131,7 @@ export default function AuthModal({ onLogin }: AuthModalProps) {
                   Processing...
                 </span>
               ) : (
-                isLogin ? 'Start Leaning' : 'Create Account'
+                isLogin ? 'Start Learning' : 'Create Account'
               )}
             </button>
           </form>

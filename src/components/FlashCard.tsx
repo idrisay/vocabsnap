@@ -7,14 +7,11 @@ interface FlashCardProps {
   vocabulary: Vocabulary;
   currentIndex: number;
   total: number;
+  isFlipped: boolean;
+  onFlip: () => void;
 }
 
-export default function FlashCard({ vocabulary, currentIndex, total }: FlashCardProps) {
-  const [isFlipped, setIsFlipped] = useState(false);
-
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
-  };
+export default function FlashCard({ vocabulary, currentIndex, total, isFlipped, onFlip }: FlashCardProps) {
 
   return (
     <div className="w-full max-w-lg mx-auto perspective-1000">
@@ -23,7 +20,7 @@ export default function FlashCard({ vocabulary, currentIndex, total }: FlashCard
       </div>
       
       <div
-        onClick={handleFlip}
+        onClick={onFlip}
         className={`relative w-full aspect-[4/3] cursor-pointer transition-transform duration-700 transform-style-preserve-3d ${
           isFlipped ? 'rotate-y-180' : ''
         }`}
