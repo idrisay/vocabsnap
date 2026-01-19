@@ -15,6 +15,11 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'manual' | 'csv'>('manual');
   
+  // Admin State
+  const [users, setUsers] = useState<any[]>([]);
+  const [viewingUserId, setViewingUserId] = useState(user._id);
+  const isAdmin = user.nickname === 'idrisay';
+  
   // Modal State
   const [modal, setModal] = useState<{
     isOpen: boolean;
@@ -35,16 +40,26 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
   const [newClusterName, setNewClusterName] = useState('');
 
   useEffect(() => {
+    if (isAdmin) {
+        fetch('/api/users')
+            .then(res => res.json())
+            .then(data => setUsers(data))
+            .catch(err => console.error('Failed to fetch users', err));
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
     fetchClusters();
-  }, [user._id]);
+  }, [viewingUserId]);
 
   useEffect(() => {
     fetchVocabularies();
-  }, [user._id, selectedClusterId]);
+  }, [viewingUserId, selectedClusterId]);
+
 
   const fetchClusters = async () => {
     try {
-      const res = await fetch(`/api/clusters?userId=${user._id}`);
+      const res = await fetch(`/api/clusters?userId=${viewingUserId}`);
       if (res.ok) {
         setClusters(await res.json());
       }
@@ -57,8 +72,8 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
     setLoading(true);
     try {
       const url = selectedClusterId 
-        ? `/api/vocabulary?userId=${user._id}&clusterId=${selectedClusterId}`
-        : `/api/vocabulary?userId=${user._id}`;
+        ? `/api/vocabulary?userId=${viewingUserId}&clusterId=${selectedClusterId}`
+        : `/api/vocabulary?userId=${viewingUserId}`;
       
       const res = await fetch(url);
       if (res.ok) {
@@ -89,7 +104,7 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
          const res = await fetch('/api/clusters', {
              method: 'POST',
              headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({ userId: user._id, name: name.trim() })
+             body: JSON.stringify({ userId: viewingUserId, name: name.trim() })
          });
          if (res.ok) {
              const newCluster = await res.json();
@@ -134,7 +149,7 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user._id,
+          userId: viewingUserId,
           clusterId: selectedClusterId,
           word: trimmedWord,
           meaning: meaning.trim(),
@@ -221,7 +236,7 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user._id,
+          userId: viewingUserId,
           clusterId: selectedClusterId,
           items // Bulk insert
         }),
@@ -397,8 +412,48 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
                         </button>
                     ))}
                 </div>
+                </div>
+
+                {isAdmin && (
+                     <div className="bg-purple-900/20 border border-purple-500/30 rounded-2xl p-4 backdrop-blur-sm">
+                        <div className="mb-4 px-2">
+                            <h2 className="text-lg font-bold text-purple-300">Admin Panel</h2>
+                            <p className="text-xs text-gray-400">Viewing as:</p>
+                        </div>
+                        <div className="space-y-2">
+                            <button
+                                onClick={() => {
+                                    setViewingUserId(user._id);
+                                    setSelectedClusterId(null);
+                                }}
+                                className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium truncate ${
+                                    viewingUserId === user._id 
+                                    ? 'bg-purple-600/50 text-white border border-purple-500' 
+                                    : 'text-gray-400 hover:bg-white/5'
+                                }`}
+                            >
+                                Me ({user.nickname})
+                            </button>
+                            {users.filter(u => u._id !== user._id).map((u: any) => (
+                                <button
+                                    key={u._id}
+                                    onClick={() => {
+                                        setViewingUserId(u._id);
+                                        setSelectedClusterId(null);
+                                    }}
+                                    className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium truncate ${
+                                        viewingUserId === u._id 
+                                        ? 'bg-purple-600/50 text-white border border-purple-500' 
+                                        : 'text-gray-400 hover:bg-white/5'
+                                    }`}
+                                >
+                                    {u.nickname}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
-        </div>
 
         {/* Main Content */}
         <div className="md:col-span-9 space-y-8">
