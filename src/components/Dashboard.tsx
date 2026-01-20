@@ -353,7 +353,7 @@ export default function Dashboard({
 
   const checkSubscription = async () => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-      const registration = await navigator.serviceWorker.register('/sw.js');
+      const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
     }

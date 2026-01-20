@@ -12,15 +12,27 @@ export const metadata: Metadata = {
   description: "Learn German vocabulary with interactive flashcards",
   manifest: "/manifest.json",
   themeColor: "#9333ea",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/icon-192.png",
+  },
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "VocabSnap",
   },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "default",
+    "apple-mobile-web-app-title": "VocabSnap",
+  }
 };
 
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
 export default function RootLayout({
   children,
@@ -32,6 +44,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider>
           <AuthProvider>
+            <ServiceWorkerRegistration />
             {children}
           </AuthProvider>
         </ThemeProvider>
