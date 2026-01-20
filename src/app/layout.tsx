@@ -8,8 +8,15 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "German Vocabulary Trainer",
+  title: "VocabSnap - German Vocabulary Trainer",
   description: "Learn German vocabulary with interactive flashcards",
+  manifest: "/manifest.json",
+  themeColor: "#9333ea",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "VocabSnap",
+  },
 };
 
 import { AuthProvider } from "@/context/AuthContext";

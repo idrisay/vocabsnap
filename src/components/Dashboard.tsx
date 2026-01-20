@@ -342,6 +342,85 @@ export default function Dashboard({
     });
   };
 
+  // Notification State
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [notifLoading, setNotifLoading] = useState(false);
+
+  useEffect(() => {
+    checkSubscription();
+  }, [user]);
+
+  const checkSubscription = async () => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      const subscription = await registration.pushManager.getSubscription();
+      setIsSubscribed(!!subscription);
+    }
+  };
+
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  const handleToggleNotifications = async () => {
+    setNotifLoading(true);
+    try {
+      if (isSubscribed) {
+        // Unsubscribe
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+        }
+        await fetch('/api/push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user._id, action: 'unsubscribe' }),
+        });
+        setIsSubscribed(false);
+      } else {
+        // Subscribe
+        const registration = await navigator.serviceWorker.ready;
+        const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        
+        if (!publicVapidKey) {
+          console.error('Public VAPID key is missing');
+          return;
+        }
+
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+        });
+
+        await fetch('/api/push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            userId: user._id, 
+            subscription, 
+            action: 'subscribe' 
+          }),
+        });
+        setIsSubscribed(true);
+      }
+    } catch (error) {
+      console.error('Failed to toggle notifications:', error);
+      showAlert("Notifications Error", "Could not update notification settings. Please check your browser permissions.");
+    } finally {
+      setNotifLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 relative">
       {/* Generic Modal */}
@@ -414,9 +493,50 @@ export default function Dashboard({
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400">
             Willkommen, {user.nickname}
           </h1>
-          <p className="text-gray-400 mt-1">
-            Organize and quiz your vocabulary.
-          </p>
+          <div className="flex items-center gap-3 mt-1">
+            <p className="text-gray-400">
+              Organize and quiz your vocabulary.
+            </p>
+            <div className="h-4 w-px bg-white/10" />
+            <button
+              onClick={handleToggleNotifications}
+              disabled={notifLoading}
+              className={`flex items-center gap-2 text-xs font-semibold px-2 py-1 rounded-md transition-all ${
+                isSubscribed 
+                  ? "bg-green-500/10 text-green-400 hover:bg-green-500/20" 
+                  : "bg-white/5 text-gray-400 hover:bg-white/10"
+              }`}
+            >
+              <svg className={`w-3.5 h-3.5 ${isSubscribed ? "fill-green-400" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span>{notifLoading ? "Loading..." : isSubscribed ? "Reminders On" : "Reminders Off"}</span>
+            </button>
+            {isSubscribed && (
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/push', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ userId: user._id, action: 'test' }),
+                    });
+                    if (res.ok) {
+                      showAlert("Success", "Test notification sent!", "success");
+                    } else {
+                      showAlert("Error", "Failed to send test notification.");
+                    }
+                  } catch (e) {
+                    showAlert("Error", "Failed to send test notification.");
+                  }
+                }}
+                className="text-[10px] text-purple-400 hover:text-purple-300 transition-colors"
+                title="Send test notification"
+              >
+                Test
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <button
