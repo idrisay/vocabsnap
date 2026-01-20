@@ -446,7 +446,7 @@ export default function Dashboard({
                 <p className="text-muted-foreground mb-3 font-medium">{modal.message}</p>
                   <input
                     className="w-full bg-muted border border-border rounded-lg px-4 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="e.g. German A1"
+                    placeholder="e.g. Spanish Basics"
                     autoFocus
                     value={newClusterName}
                     onChange={(e) => setNewClusterName(e.target.value)}
@@ -495,7 +495,7 @@ export default function Dashboard({
           <ThemeToggle />
           <div>
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400">
-              Willkommen, {user.nickname}
+              Welcome, {user.nickname}
             </h1>
             <div className="flex items-center gap-3 mt-1">
               <p className="text-muted-foreground text-sm">

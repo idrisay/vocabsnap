@@ -51,7 +51,7 @@ export async function GET() {
       {
         $project: {
           nickname: 1,
-          joinedAt: 1,
+          joinedAt: { $ifNull: ["$joinedAt", "$createdAt"] },
           activityCount: { $ifNull: [{ $arrayElemAt: ['$activityCount.count', 0] }, 0] }
         }
       },

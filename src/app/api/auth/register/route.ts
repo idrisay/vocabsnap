@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     await users.insertOne({
       nickname,
       password: hashedPassword,
-      createdAt: new Date(),
+      joinedAt: new Date(),
     });
 
     return NextResponse.json(

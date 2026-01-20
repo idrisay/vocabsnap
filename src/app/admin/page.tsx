@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ActivityGraph } from "@/components/Admin/ActivityGraph";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function AdminPage() {
   const { user, loading: authLoading } = useAuth();
@@ -12,6 +13,24 @@ export default function AdminPage() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activities, setActivities] = useState<any[]>([]);
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant: 'danger' | 'info';
+    confirmText?: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    variant: 'info'
+  });
+
+  const showModal = (title: string, message: string, onConfirm: () => void, variant: 'danger' | 'info' = 'info', confirmText: string = 'Confirm') => {
+    setModalConfig({ isOpen: true, title, message, onConfirm, variant, confirmText });
+  };
 
   useEffect(() => {
     if (!authLoading) {
@@ -46,6 +65,37 @@ export default function AdminPage() {
      } catch (e) {
         console.error("Failed to fetch activities", e);
      }
+  };
+
+  const deleteUser = async (userId: string, nickname: string) => {
+    if (nickname === 'idrisay') {
+      showModal("Action Denied", "You cannot delete the master admin account.", () => setModalConfig(prev => ({ ...prev, isOpen: false })), 'info', 'OK');
+      return;
+    }
+
+    showModal(
+        "Delete User", 
+        `Are you sure you want to delete user "${nickname}"? This will permanently remove all their vocabulary, decks, and activity logs.`,
+        async () => {
+            setModalConfig(prev => ({ ...prev, isOpen: false }));
+            try {
+                const res = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+                if (res.ok) {
+                  fetchStats();
+                  fetchRecentActivities();
+                  showModal("Success", `User ${nickname} deleted successfully.`, () => setModalConfig(prev => ({ ...prev, isOpen: false })), 'info', 'Great');
+                } else {
+                  const error = await res.json();
+                  showModal("Error", `Failed to delete user: ${error.error || 'Unknown error'}`, () => setModalConfig(prev => ({ ...prev, isOpen: false })), 'danger', 'Retry');
+                }
+              } catch (e) {
+                console.error("Failed to delete user", e);
+                showModal("Error", "An error occurred while deleting the user.", () => setModalConfig(prev => ({ ...prev, isOpen: false })), 'danger', 'Close');
+              }
+        },
+        'danger',
+        'Delete Permanently'
+    );
   };
 
   if (authLoading || loading) {
@@ -136,6 +186,7 @@ export default function AdminPage() {
                                 <th className="pb-4 font-bold px-2 text-muted-foreground/60 tracking-wider">Nickname</th>
                                 <th className="pb-4 font-bold px-2 text-center text-muted-foreground/60 tracking-wider">Activities</th>
                                 <th className="pb-4 font-bold px-2 text-right text-muted-foreground/60 tracking-wider">Joined</th>
+                                <th className="pb-4 font-bold px-2 text-right text-muted-foreground/60 tracking-wider w-20">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -143,7 +194,20 @@ export default function AdminPage() {
                                 <tr key={u._id} className="text-sm group hover:bg-accent/5 transition-colors">
                                     <td className="py-4 px-2 font-bold text-foreground">{u.nickname} {u.nickname === 'idrisay' && <span className="text-[10px] bg-purple-600/10 text-purple-700 dark:text-purple-400 px-1.5 py-0.5 rounded ml-2 font-black">ADMIN</span>}</td>
                                     <td className="py-4 px-2 text-center text-purple-600 dark:text-purple-400 font-black">{u.activityCount}</td>
-                                    <td className="py-4 px-2 text-right text-muted-foreground font-medium">{new Date(u.joinedAt).toLocaleDateString()}</td>
+                                    <td className="py-4 px-2 text-right text-muted-foreground font-medium">{new Date(u.joinedAt).toLocaleString()}</td>
+                                    <td className="py-4 px-2 text-right">
+                                        {u.nickname !== 'idrisay' && (
+                                            <button 
+                                                onClick={() => deleteUser(u._id, u.nickname)}
+                                                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors group/del"
+                                                title="Delete User"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -158,7 +222,7 @@ export default function AdminPage() {
                 </h3>
                 <div className="space-y-4 overflow-y-auto max-h-[500px] custom-scrollbar pr-2">
                     {activities.map((act) => (
-                        <div key={act._id} className="flex items-start gap-4 p-4 bg-muted/30 border border-border rounded-2xl hover:border-accent/10 transition-all">
+                        <div key={act._id} className="flex items-start gap-4 p-4 bg-muted/30 border border-border rounded-2xl cursor-pointer hover:border-accent/10 transition-all">
                             <div className={`p-2 rounded-xl shrink-0 ${
                                 act.type.includes('login') ? 'bg-blue-500/20 text-blue-400' :
                                 act.type.includes('word_added') ? 'bg-green-500/20 text-green-400' :
@@ -182,6 +246,16 @@ export default function AdminPage() {
             </div>
         </div>
       </div>
+      
+      <ConfirmModal
+        isOpen={modalConfig.isOpen}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        confirmText={modalConfig.confirmText}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+        variant={modalConfig.variant}
+      />
     </div>
   );
 }
@@ -220,7 +294,7 @@ const StatCard = ({ title, value, icon, color }: any) => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-3xl p-6 shadow-sm backdrop-blur-sm hover:border-accent/20 transition-all group">
+    <div className="bg-card border border-border rounded-3xl p-6 shadow-sm backdrop-blur-sm cursor-pointer hover:border-accent/20 transition-all group">
       <div className="flex items-center gap-4">
         <div className={`p-3 rounded-2xl ${colors[color]} group-hover:scale-110 transition-transform`}>
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -10,12 +10,13 @@ export async function GET() {
     
     // Project only necessary fields
     const users = await db.collection("users").find({}, {
-        projection: { nickname: 1, _id: 1, joinedAt: 1 }
+        projection: { nickname: 1, _id: 1, joinedAt: 1, createdAt: 1 }
     }).toArray();
 
     const serializedUsers = users.map(user => ({
         ...user,
-        _id: user._id.toString()
+        _id: user._id.toString(),
+        joinedAt: user.joinedAt || user.createdAt
     }));
 
     return NextResponse.json(serializedUsers);

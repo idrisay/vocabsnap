@@ -1,7 +1,7 @@
 {
   "name": "VocabSnap",
   "short_name": "VocabSnap",
-  "description": "Learn German vocabulary with interactive flashcards",
+  "description": "Learn any language vocabulary with interactive flashcards",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

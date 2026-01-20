@@ -8,8 +8,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "VocabSnap - German Vocabulary Trainer",
-  description: "Learn German vocabulary with interactive flashcards",
+  title: "VocabSnap - Personal Vocabulary Trainer",
+  description: "Learn any language vocabulary with interactive flashcards",
   manifest: "/manifest.json",
   themeColor: "#9333ea",
   icons: {
