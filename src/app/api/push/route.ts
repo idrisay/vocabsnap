@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     const users = db.collection('users');
 
     if (action === 'subscribe') {
+      const { timezone } = body;
       if (!subscription) {
         return NextResponse.json({ error: 'Subscription is required' }, { status: 400 });
       }
@@ -25,7 +26,9 @@ export async function POST(request: Request) {
         { 
           $set: { 
             pushSubscription: subscription,
-            notificationsEnabled: true 
+            notificationsEnabled: true,
+            timezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+            lastReminderSent: null
           } 
         }
       );
@@ -70,6 +73,12 @@ export async function POST(request: Request) {
       } else {
         return NextResponse.json({ error: result.error || 'Failed to send notification' }, { status: 500 });
       }
+    }
+
+    if (action === 'test-reminders') {
+      const { checkAndSendReminders } = await import('@/lib/reminders');
+      await checkAndSendReminders();
+      return NextResponse.json({ message: 'Reminder check triggered' });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

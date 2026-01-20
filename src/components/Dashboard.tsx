@@ -409,7 +409,8 @@ export default function Dashboard({
           body: JSON.stringify({ 
             userId: user._id, 
             subscription, 
-            action: 'subscribe' 
+            action: 'subscribe',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
           }),
         });
         setIsSubscribed(true);
@@ -516,28 +517,54 @@ export default function Dashboard({
                 <span>{notifLoading ? "Loading..." : isSubscribed ? "Reminders On" : "Reminders Off"}</span>
               </button>
               {isSubscribed && (
-                <button
-                  onClick={async () => {
-                    try {
-                      const res = await fetch('/api/push', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: user._id, action: 'test' }),
-                      });
-                      if (res.ok) {
-                        showAlert("Success", "Test notification sent!", "success");
-                      } else {
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('/api/push', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ userId: user._id, action: 'test' }),
+                        });
+                        if (res.ok) {
+                          showAlert("Success", "Test notification sent!", "success");
+                        } else {
+                          showAlert("Error", "Failed to send test notification.");
+                        }
+                      } catch (e) {
                         showAlert("Error", "Failed to send test notification.");
                       }
-                    } catch (e) {
-                      showAlert("Error", "Failed to send test notification.");
-                    }
-                  }}
-                  className="text-[10px] text-purple-600 dark:text-purple-400 hover:text-purple-500 transition-colors"
-                  title="Send test notification"
-                >
-                  Test
-                </button>
+                    }}
+                    className="text-[10px] text-purple-600 dark:text-purple-400 hover:text-purple-500 transition-colors"
+                    title="Send test notification"
+                  >
+                    Test
+                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const res = await fetch('/api/push', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId: user._id, action: 'test-reminders' }),
+                          });
+                          if (res.ok) {
+                            showAlert("Success", "Reminder check triggered!", "success");
+                          } else {
+                            showAlert("Error", "Failed to trigger reminder check.");
+                          }
+                        } catch (e) {
+                          showAlert("Error", "Failed to trigger reminder check.");
+                        }
+                      }}
+                      className="text-[10px] text-orange-600 dark:text-orange-400 hover:text-orange-500 transition-colors border-l border-border pl-2"
+                      title="Manually trigger daily reminder check"
+                    >
+                      Trigger
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </div>
