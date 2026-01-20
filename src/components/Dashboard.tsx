@@ -576,8 +576,8 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
 
                 {/* List Widget */}
                 <div>
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm min-h-[500px]">
-                        <div className="flex items-center justify-between mb-6">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm h-[650px] flex flex-col">
+                        <div className="flex items-center justify-between mb-6 shrink-0">
                             <h2 className="text-xl font-semibold text-white">
                                 Collection
                                 <span className="ml-3 text-xs font-normal text-gray-400 bg-white/5 px-2 py-1 rounded-md">{vocabularies.length} words</span>
@@ -591,22 +591,23 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
                             </button>
                         </div>
 
-                        {loading ? (
-                        <div className="flex justify-center items-center h-64">
-                            <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-                        </div>
-                        ) : vocabularies.length === 0 ? (
-                        <div className="text-center py-20 text-gray-500">
-                            <p className="mb-2 text-4xl">📚</p>
-                            <p>No words found.</p>
-                            {selectedClusterId && <p className="text-sm">Added words will appear here.</p>}
-                        </div>
-                        ) : (
-                            <div className="space-y-3">
-                            {vocabularies.map((vocab: any) => (
-                            <div 
-                                key={vocab._id}
-                                className="group flex items-start gap-4 p-4 bg-black/20 hover:bg-black/30 border border-white/5 hover:border-white/10 rounded-xl transition-all"
+                        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                            {loading ? (
+                            <div className="flex justify-center items-center h-full">
+                                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                            </div>
+                            ) : vocabularies.length === 0 ? (
+                            <div className="flex flex-col justify-center items-center h-full text-gray-500">
+                                <p className="mb-2 text-4xl">📚</p>
+                                <p>No words found.</p>
+                                {selectedClusterId && <p className="text-sm">Added words will appear here.</p>}
+                            </div>
+                            ) : (
+                                <div className="space-y-3 pb-2">
+                                {vocabularies.map((vocab: any) => (
+                                <div 
+                                    key={vocab._id}
+                                    className="group flex items-start gap-4 p-4 bg-black/20 hover:bg-black/30 border border-white/5 hover:border-white/10 rounded-xl transition-all"
                             >
                                 <div className="flex-1 min-w-0">
                                 <div className="flex items-baseline gap-3 mb-1">
@@ -633,6 +634,7 @@ export default function Dashboard({ user, onStartQuiz, onLogout }: DashboardProp
                             ))}
                         </div>
                         )}
+                        </div>
                     </div>
                 </div>
             </div>
