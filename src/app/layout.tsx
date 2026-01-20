@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   themeColor: "#9333ea",
   icons: {
-    icon: "/favicon.png",
-    apple: "/icon-192.png",
+    icon: "/favicon.png?v=1",
+    apple: "/icon-192.png?v=1",
   },
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   appleWebApp: {
