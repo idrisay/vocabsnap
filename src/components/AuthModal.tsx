@@ -59,12 +59,12 @@ export default function AuthModal({ onLogin, onClose, mode = 'login' }: AuthModa
             if (e.target === e.currentTarget) onClose();
         }}
     >
-      <div className="w-full max-w-md bg-gray-900 border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Close Button */}
         <button 
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
         >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -79,7 +79,7 @@ export default function AuthModal({ onLogin, onClose, mode = 'login' }: AuthModa
           <h2 className="text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 mb-2">
             {isLogin ? 'Welcome Back' : 'Join VocabSnap'}
           </h2>
-          <p className="text-gray-400 text-center mb-8">
+          <p className="text-muted-foreground text-center mb-8 font-medium">
             {isLogin
               ? 'Enter your credentials to continue'
               : 'Create an account to track your progress'}
@@ -87,7 +87,7 @@ export default function AuthModal({ onLogin, onClose, mode = 'login' }: AuthModa
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label className="block text-sm font-semibold text-muted-foreground mb-1">
                 Nickname
               </label>
               <input
@@ -95,13 +95,13 @@ export default function AuthModal({ onLogin, onClose, mode = 'login' }: AuthModa
                 required
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-gray-500 transition-all"
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-foreground placeholder-muted-foreground/50 transition-all font-medium"
                 placeholder="Enter your nickname"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label className="block text-sm font-semibold text-muted-foreground mb-1">
                 Password
               </label>
               <input
@@ -109,7 +109,7 @@ export default function AuthModal({ onLogin, onClose, mode = 'login' }: AuthModa
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder-gray-500 transition-all"
+                className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-foreground placeholder-muted-foreground/50 transition-all font-medium"
                 placeholder="Enter your password"
               />
             </div>
@@ -142,7 +142,7 @@ export default function AuthModal({ onLogin, onClose, mode = 'login' }: AuthModa
                 setIsLogin(!isLogin);
                 setError('');
               }}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
             </button>

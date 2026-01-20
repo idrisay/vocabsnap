@@ -158,19 +158,19 @@ function QuizContent() {
 
   if (authLoading || loading) {
      return (
-        <div className="flex h-screen items-center justify-center bg-black text-white">
-            <div className="w-8 h-8 border-2 border-purple-500 border-t-white rounded-full animate-spin" />
+        <div className="flex h-screen items-center justify-center bg-background text-foreground">
+            <div className="w-8 h-8 border-2 border-purple-500 border-t-purple-200 rounded-full animate-spin" />
         </div>
      );
   }
   
   if (vocabularies.length === 0) {
       return (
-        <div className="flex h-screen flex-col items-center justify-center bg-black text-white gap-4">
-            <h2 className="text-xl text-gray-400">No words found in this deck.</h2>
+        <div className="flex h-screen flex-col items-center justify-center bg-background text-foreground gap-4">
+            <h2 className="text-xl text-muted-foreground font-medium">No words found in this deck.</h2>
             <button 
                 onClick={() => router.push('/dashboard')}
-                className="px-6 py-2 bg-purple-600 rounded-xl font-semibold hover:bg-purple-500 transition-colors"
+                className="px-6 py-2 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-500 transition-colors shadow-lg shadow-purple-500/20"
             >
                 Back to Dashboard
             </button>
@@ -179,23 +179,23 @@ function QuizContent() {
   }
 
   return (
-      <div className="min-h-screen bg-black text-white selection:bg-purple-500/30 font-sans">
-        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
+      <div className="min-h-screen bg-background text-foreground selection:bg-purple-500/30 font-sans">
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/10 via-background to-background pointer-events-none" />
         
         <main className="relative container mx-auto px-4 py-8 min-h-screen flex flex-col max-w-2xl">
           <header className="flex justify-between items-center mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
             <div className="flex flex-col">
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
+                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
                 Training Session
                 </h1>
-                <span className="text-xs text-gray-500 font-mono mt-1">
+                <span className="text-xs text-muted-foreground font-mono mt-1 font-bold">
                     {clusterId ? 'Deck Review' : 'All Words Review'}
                 </span>
             </div>
             
             <button 
               onClick={() => router.push('/dashboard')}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-sm text-gray-400 hover:text-white transition-colors backdrop-blur-sm border border-white/5"
+              className="px-4 py-2 bg-muted hover:bg-accent/10 rounded-full text-sm text-muted-foreground hover:text-foreground transition-all backdrop-blur-sm border border-border font-semibold shadow-sm"
             >
               Exit
             </button>
@@ -203,12 +203,12 @@ function QuizContent() {
 
           <div className="flex-1 flex flex-col justify-center gap-8">
             {quizState.showScore ? (
-              <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-8 text-center animate-in zoom-in duration-500">
-                <h2 className="text-3xl font-bold text-white mb-4">Session Complete! 🎉</h2>
-                <div className="text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400 mb-6">
+              <div className="bg-card border border-border backdrop-blur-xl rounded-3xl p-8 text-center animate-in zoom-in duration-500 shadow-xl">
+                <h2 className="text-3xl font-bold text-foreground mb-4">Session Complete! 🎉</h2>
+                <div className="text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 mb-6">
                   {Math.round((quizState.score / vocabularies.length) * 100)}%
                 </div>
-                <p className="text-gray-400 mb-8">
+                <p className="text-muted-foreground mb-8 font-medium">
                   You mastered {quizState.score} out of {vocabularies.length} words
                 </p>
                 <div className="flex gap-4 justify-center">
@@ -220,7 +220,7 @@ function QuizContent() {
                   </button>
                   <button
                     onClick={() => router.push('/dashboard')}
-                    className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all"
+                    className="px-8 py-3 bg-muted hover:bg-accent/10 border border-border text-foreground rounded-xl font-semibold transition-all shadow-sm"
                   >
                     Back to Dashboard
                   </button>
@@ -269,7 +269,7 @@ function QuizContent() {
 
 export default function QuizPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <Suspense fallback={<div className="min-h-screen bg-background" />}>
             <QuizContent />
         </Suspense>
     );

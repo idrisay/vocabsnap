@@ -34,8 +34,8 @@ export const ActivityGraph = ({ data }: { data: GraphData[] }) => {
               y1={height * p}
               x2={width}
               y2={height * p}
-              stroke="white"
-              strokeOpacity="0.05"
+              stroke="currentColor"
+              strokeOpacity="0.1"
               strokeDasharray="4"
             />
           ))}
@@ -82,7 +82,7 @@ export const ActivityGraph = ({ data }: { data: GraphData[] }) => {
         {/* X-Axis Labels */}
         <div className="flex justify-between mt-2 px-2">
            {data.filter((_, i) => i % 2 === 0).map((d) => (
-             <span key={d._id} className="text-[10px] text-gray-500 font-medium">
+             <span key={d._id} className="text-[10px] text-muted-foreground font-semibold">
                {d._id.split('-').slice(1).join('/')}
              </span>
            ))}

@@ -17,8 +17,8 @@ export default function DashboardPage() {
 
   if (loading || !user) {
     return (
-        <div className="min-h-screen bg-black flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-purple-500 border-t-white rounded-full animate-spin" />
+        <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-purple-500 border-t-purple-200 rounded-full animate-spin" />
         </div>
     );
   }
@@ -32,8 +32,8 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-purple-500/30">
-        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
+    <div className="min-h-screen bg-background text-foreground selection:bg-purple-500/30">
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/10 via-background to-background pointer-events-none" />
         <main className="relative z-10 container mx-auto px-4 py-8">
             <Dashboard 
                 user={user} 
