@@ -40,8 +40,8 @@ export async function POST(request: Request) {
     // Return user info (excluding password)
     const { password: _, ...userWithoutPassword } = user;
 
-    // Log Activity (Non-blocking)
-    logActivity(user._id.toString(), ActivityType.USER_LOGIN);
+    // Log Activity
+    await logActivity(user._id.toString(), ActivityType.USER_LOGIN);
 
     return NextResponse.json(
       { message: 'Login successful', user: userWithoutPassword },

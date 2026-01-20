@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       const result = await db.collection('vocabularies').insertMany(newVocabs);
 
       // Log Activity
-      logActivity(userId, ActivityType.WORDS_IMPORTED, { 
+      await logActivity(userId, ActivityType.WORDS_IMPORTED, { 
         count: result.insertedCount, 
         clusterId: body.clusterId 
       });
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
     const result = await db.collection('vocabularies').insertOne(newVocab);
 
     // Log Activity
-    logActivity(userId, ActivityType.WORD_ADDED, { 
+    await logActivity(userId, ActivityType.WORD_ADDED, { 
       wordId: result.insertedId.toString(), 
       word,
       clusterId 
@@ -146,7 +146,7 @@ export async function DELETE(request: Request) {
     await db.collection('vocabularies').deleteOne({ _id: new ObjectId(id) });
 
     if (wordDoc) {
-      logActivity(wordDoc.userId, ActivityType.WORD_DELETED, { 
+      await logActivity(wordDoc.userId, ActivityType.WORD_DELETED, { 
         wordId: id, 
         word: wordDoc.word 
       });

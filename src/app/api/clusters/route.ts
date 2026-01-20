@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     const result = await db.collection('clusters').insertOne(newCluster);
 
     // Log Activity
-    logActivity(userId, ActivityType.DECK_CREATED, { 
+    await logActivity(userId, ActivityType.DECK_CREATED, { 
       clusterId: result.insertedId.toString(), 
       deckName: name 
     });
@@ -78,7 +78,7 @@ export async function DELETE(request: Request) {
       await db.collection('vocabularies').deleteMany({ clusterId: new ObjectId(id) });
   
       if (clusterDoc) {
-        logActivity(clusterDoc.userId, ActivityType.DECK_DELETED, { 
+        await logActivity(clusterDoc.userId, ActivityType.DECK_DELETED, { 
           clusterId: id, 
           deckName: clusterDoc.name 
         });
