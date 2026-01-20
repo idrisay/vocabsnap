@@ -3,6 +3,8 @@ import client from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { logActivity } from '@/lib/activity';
 import { ActivityType } from '@/types/types';
+import { waitUntil } from '@vercel/functions';
+
 
 
 export async function GET(request: Request) {
@@ -46,11 +48,11 @@ export async function POST(request: Request) {
 
     const result = await db.collection('clusters').insertOne(newCluster);
 
-    // Log Activity
-    await logActivity(userId, ActivityType.DECK_CREATED, { 
+    // Log Activity (Non-blocking)
+    waitUntil(logActivity(userId, ActivityType.DECK_CREATED, { 
       clusterId: result.insertedId.toString(), 
       deckName: name 
-    });
+    }));
 
     return NextResponse.json({ ...newCluster, _id: result.insertedId }, { status: 201 });
   } catch (error) {
@@ -78,10 +80,10 @@ export async function DELETE(request: Request) {
       await db.collection('vocabularies').deleteMany({ clusterId: new ObjectId(id) });
   
       if (clusterDoc) {
-        await logActivity(clusterDoc.userId, ActivityType.DECK_DELETED, { 
+        waitUntil(logActivity(clusterDoc.userId, ActivityType.DECK_DELETED, { 
           clusterId: id, 
           deckName: clusterDoc.name 
-        });
+        }));
       }
 
       return NextResponse.json({ success: true });

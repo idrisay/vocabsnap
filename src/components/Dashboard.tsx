@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Vocabulary } from "@/types/types";
+
 
 interface DashboardProps {
   user: any;
@@ -12,7 +14,9 @@ export default function Dashboard({
   onStartQuiz,
   onLogout,
 }: DashboardProps) {
+  const router = useRouter();
   const [vocabularies, setVocabularies] = useState<Vocabulary[]>([]);
+
   const [clusters, setClusters] = useState<any[]>([]);
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(
     null,
@@ -24,9 +28,8 @@ export default function Dashboard({
   // Admin State
   const [users, setUsers] = useState<any[]>([]);
   const [viewingUserId, setViewingUserId] = useState(user._id);
-  const [activities, setActivities] = useState<any[]>([]);
-  const [showActivities, setShowActivities] = useState(false);
   const isAdmin = user.nickname === "idrisay";
+
 
 
   // Modal State
@@ -65,42 +68,6 @@ export default function Dashboard({
     fetchVocabularies();
   }, [viewingUserId, selectedClusterId]);
 
-  useEffect(() => {
-    if (showActivities) {
-        fetchActivities();
-    }
-  }, [showActivities]);
-
-  const fetchActivities = async () => {
-    try {
-        const res = await fetch(`/api/activity?userId=all`);
-        if (res.ok) {
-            setActivities(await res.json());
-        }
-    } catch (e) {
-        console.error('Failed to fetch activities', e);
-    }
-  };
-
-  const formatActivity = (act: any) => {
-    const { type, metadata, nickname } = act;
-    const user = nickname || 'Unknown User';
-    
-    switch (type) {
-        case 'user_login': return `${user} logged in`;
-        case 'user_logout': return `${user} logged out`;
-        case 'word_added': return `${user} added word: "${metadata.word}"`;
-        case 'word_deleted': return `${user} deleted word: "${metadata.word}"`;
-        case 'words_imported': return `${user} imported ${metadata.count} words`;
-        case 'deck_created': return `${user} created deck: "${metadata.deckName}"`;
-        case 'deck_deleted': return `${user} deleted deck: "${metadata.deckName}"`;
-        case 'quiz_started': return `${user} started quiz (${metadata.wordCount} words)`;
-        case 'quiz_completed': return `${user} completed quiz: ${metadata.score}/${metadata.total} (${metadata.percentage}%)`;
-        case 'word_correct': return `${user} got "${metadata.word}" correct`;
-        case 'word_incorrect': return `${user} got "${metadata.word}" wrong`;
-        default: return `${user} performed ${type}`;
-    }
-  };
 
   const fetchClusters = async () => {
     try {
@@ -530,7 +497,7 @@ export default function Dashboard({
 
           {isAdmin && (
             <div className="bg-purple-900/20 border border-purple-500/30 rounded-2xl p-4 backdrop-blur-sm">
-              <div className="mb-4 px-2 flex items-center justify-between">
+              <div className="mb-4 px-2 flex items-center justify-between border-b border-purple-500/20 pb-2">
                 <div>
                     <h2 className="text-lg font-bold text-purple-300">
                     Admin Panel
@@ -538,12 +505,12 @@ export default function Dashboard({
                     <p className="text-xs text-gray-400">Control Center</p>
                 </div>
                 <button 
-                    onClick={() => setShowActivities(!showActivities)}
-                    className={`p-2 rounded-lg transition-colors ${showActivities ? 'bg-purple-500 text-white' : 'bg-white/5 text-purple-300 hover:bg-white/10'}`}
-                    title="View All Activities"
+                    onClick={() => router.push('/admin')}
+                    className="p-2 rounded-lg bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all"
+                    title="Go to Analytics Dashboard"
                 >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                 </button>
               </div>
@@ -556,10 +523,9 @@ export default function Dashboard({
                         onClick={() => {
                             setViewingUserId(user._id);
                             setSelectedClusterId(null);
-                            setShowActivities(false);
                         }}
                         className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium truncate ${
-                            viewingUserId === user._id && !showActivities
+                            viewingUserId === user._id
                             ? "bg-purple-600/50 text-white border border-purple-500"
                             : "text-gray-400 hover:bg-white/5"
                         }`}
@@ -574,10 +540,9 @@ export default function Dashboard({
                             onClick={() => {
                                 setViewingUserId(u._id);
                                 setSelectedClusterId(null);
-                                setShowActivities(false);
                             }}
                             className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium truncate ${
-                                viewingUserId === u._id && !showActivities
+                                viewingUserId === u._id
                                 ? "bg-purple-600/50 text-white border border-purple-500"
                                 : "text-gray-400 hover:bg-white/5"
                             }`}
@@ -594,51 +559,6 @@ export default function Dashboard({
 
         {/* Main Content */}
         <div className="md:col-span-9 space-y-8">
-          
-          {showActivities ? (
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-2xl font-bold text-white">System Activities</h2>
-                      <button 
-                        onClick={fetchActivities}
-                        className="p-2 hover:bg-white/5 rounded-lg text-gray-400 transition-colors"
-                        title="Refresh"
-                      >
-                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                      </button>
-                  </div>
-                  
-                  <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2 custom-scrollbar">
-                      {activities.length === 0 ? (
-                          <p className="text-gray-500 text-center py-12">No activities recorded yet.</p>
-                      ) : (
-                          activities.map((act) => (
-                            <div key={act._id} className="flex items-start gap-4 p-4 bg-black/20 border border-white/5 rounded-xl hover:border-white/10 transition-all">
-                                <div className={`p-2 rounded-lg shrink-0 ${
-                                    act.type.includes('login') ? 'bg-blue-500/10 text-blue-400' :
-                                    act.type.includes('word_added') ? 'bg-green-500/10 text-green-400' :
-                                    act.type.includes('quiz') ? 'bg-purple-500/10 text-purple-400' :
-                                    act.type.includes('deleted') ? 'bg-red-500/10 text-red-400' : 'bg-gray-500/10 text-gray-400'
-                                }`}>
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-white font-medium">{formatActivity(act)}</p>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        {new Date(act.createdAt).toLocaleString()}
-                                    </p>
-                                </div>
-                            </div>
-                          ))
-                      )}
-                  </div>
-              </div>
-          ) : (
-          <>
           {/* Context Header */}
           {selectedClusterId && (
             <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl p-4">
@@ -855,8 +775,6 @@ export default function Dashboard({
               </div>
             </div>
           </div>
-          </>
-          )}
         </div>
       </div>
     </div>

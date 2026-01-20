@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { logActivity } from '@/lib/activity';
 import { ActivityType } from '@/types/types';
+import { waitUntil } from '@vercel/functions';
 
 export async function POST(request: Request) {
   try {
     const { userId } = await request.json();
 
     if (userId) {
-      await logActivity(userId, ActivityType.USER_LOGOUT);
+      waitUntil(logActivity(userId, ActivityType.USER_LOGOUT));
     }
 
     return NextResponse.json({ message: 'Logout logged' }, { status: 200 });

@@ -3,6 +3,8 @@ import client from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
 import { logActivity } from '@/lib/activity';
 import { ActivityType } from '@/types/types';
+import { waitUntil } from '@vercel/functions';
+
 
 
 export async function POST(request: Request) {
@@ -40,8 +42,8 @@ export async function POST(request: Request) {
     // Return user info (excluding password)
     const { password: _, ...userWithoutPassword } = user;
 
-    // Log Activity
-    await logActivity(user._id.toString(), ActivityType.USER_LOGIN);
+    // Log Activity (Non-blocking)
+    waitUntil(logActivity(user._id.toString(), ActivityType.USER_LOGIN));
 
     return NextResponse.json(
       { message: 'Login successful', user: userWithoutPassword },

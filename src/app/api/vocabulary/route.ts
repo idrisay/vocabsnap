@@ -3,6 +3,8 @@ import client from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { logActivity } from '@/lib/activity';
 import { ActivityType } from '@/types/types';
+import { waitUntil } from '@vercel/functions';
+
 
 
 export async function GET(request: Request) {
@@ -78,11 +80,11 @@ export async function POST(request: Request) {
 
       const result = await db.collection('vocabularies').insertMany(newVocabs);
 
-      // Log Activity
-      await logActivity(userId, ActivityType.WORDS_IMPORTED, { 
+      // Log Activity (Non-blocking)
+      waitUntil(logActivity(userId, ActivityType.WORDS_IMPORTED, { 
         count: result.insertedCount, 
         clusterId: body.clusterId 
-      });
+      }));
 
       return NextResponse.json({ 
         count: result.insertedCount, 
@@ -115,12 +117,12 @@ export async function POST(request: Request) {
 
     const result = await db.collection('vocabularies').insertOne(newVocab);
 
-    // Log Activity
-    await logActivity(userId, ActivityType.WORD_ADDED, { 
+    // Log Activity (Non-blocking)
+    waitUntil(logActivity(userId, ActivityType.WORD_ADDED, { 
       wordId: result.insertedId.toString(), 
       word,
       clusterId 
-    });
+    }));
 
     return NextResponse.json({ ...newVocab, _id: result.insertedId }, { status: 201 });
   } catch (error) {
