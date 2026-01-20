@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import client from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { logActivity } from '@/lib/activity';
+import { ActivityType } from '@/types/types';
+
 
 export async function GET(request: Request) {
   try {
@@ -42,6 +45,13 @@ export async function POST(request: Request) {
     };
 
     const result = await db.collection('clusters').insertOne(newCluster);
+
+    // Log Activity
+    logActivity(userId, ActivityType.DECK_CREATED, { 
+      clusterId: result.insertedId.toString(), 
+      deckName: name 
+    });
+
     return NextResponse.json({ ...newCluster, _id: result.insertedId }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -58,15 +68,22 @@ export async function DELETE(request: Request) {
       }
   
       const db = client.db('vocabsnap');
+
+      // Get cluster details for logging before deleting
+      const clusterDoc = await db.collection('clusters').findOne({ _id: new ObjectId(id) });
+
       await db.collection('clusters').deleteOne({ _id: new ObjectId(id) });
       
       // Also delete words in this cluster? Or unset them?
-      // User likely wants words deleted if they delete the deck.
-      // But safe option: Unset clusterId.
-      // Let's go with DELETE for now as clearer semantics for "Delete Folder".
-      // Actually, standard behavior: Delete words inside.
       await db.collection('vocabularies').deleteMany({ clusterId: new ObjectId(id) });
   
+      if (clusterDoc) {
+        logActivity(clusterDoc.userId, ActivityType.DECK_DELETED, { 
+          clusterId: id, 
+          deckName: clusterDoc.name 
+        });
+      }
+
       return NextResponse.json({ success: true });
     } catch (error) {
       return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

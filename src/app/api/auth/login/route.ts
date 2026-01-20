@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import client from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
+import { logActivity } from '@/lib/activity';
+import { ActivityType } from '@/types/types';
+
 
 export async function POST(request: Request) {
   try {
@@ -36,6 +39,9 @@ export async function POST(request: Request) {
 
     // Return user info (excluding password)
     const { password: _, ...userWithoutPassword } = user;
+
+    // Log Activity (Non-blocking)
+    logActivity(user._id.toString(), ActivityType.USER_LOGIN);
 
     return NextResponse.json(
       { message: 'Login successful', user: userWithoutPassword },

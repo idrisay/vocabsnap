@@ -42,7 +42,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/dashboard');
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (user) {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user._id }),
+        });
+      } catch (e) {
+        console.error('Failed to log logout activity');
+      }
+    }
     setUser(null);
     localStorage.removeItem('user');
     router.push('/');

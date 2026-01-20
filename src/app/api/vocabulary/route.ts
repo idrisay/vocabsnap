@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import client from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { logActivity } from '@/lib/activity';
+import { ActivityType } from '@/types/types';
+
 
 export async function GET(request: Request) {
   try {
@@ -74,6 +77,13 @@ export async function POST(request: Request) {
       }
 
       const result = await db.collection('vocabularies').insertMany(newVocabs);
+
+      // Log Activity
+      logActivity(userId, ActivityType.WORDS_IMPORTED, { 
+        count: result.insertedCount, 
+        clusterId: body.clusterId 
+      });
+
       return NextResponse.json({ 
         count: result.insertedCount, 
         skipped: items.length - result.insertedCount 
@@ -105,6 +115,13 @@ export async function POST(request: Request) {
 
     const result = await db.collection('vocabularies').insertOne(newVocab);
 
+    // Log Activity
+    logActivity(userId, ActivityType.WORD_ADDED, { 
+      wordId: result.insertedId.toString(), 
+      word,
+      clusterId 
+    });
+
     return NextResponse.json({ ...newVocab, _id: result.insertedId }, { status: 201 });
   } catch (error) {
     console.error('Error creating vocabulary:', error);
@@ -122,7 +139,18 @@ export async function DELETE(request: Request) {
     }
 
     const db = client.db('vocabsnap');
+    
+    // Get word details for logging before deleting
+    const wordDoc = await db.collection('vocabularies').findOne({ _id: new ObjectId(id) });
+    
     await db.collection('vocabularies').deleteOne({ _id: new ObjectId(id) });
+
+    if (wordDoc) {
+      logActivity(wordDoc.userId, ActivityType.WORD_DELETED, { 
+        wordId: id, 
+        word: wordDoc.word 
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

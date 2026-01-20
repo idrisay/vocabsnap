@@ -6,7 +6,8 @@ import { useAuth } from '@/context/AuthContext';
 import FlashCard from '@/components/FlashCard';
 import ProgressBar from '@/components/ProgressBar';
 import QuizControls from '@/components/QuizControls';
-import { Vocabulary } from '@/types/types';
+import { Vocabulary, ActivityType } from '@/types/types';
+
 
 interface QuizState {
   currentIndex: number;
@@ -39,6 +40,20 @@ function QuizContent() {
     }
   }, [authLoading, user, router]);
 
+  // Activity Logging Helper
+  const logQuizActivity = useCallback(async (type: ActivityType, metadata: any = {}) => {
+    if (!user) return;
+    try {
+      await fetch('/api/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user._id, type, metadata }),
+      });
+    } catch (e) {
+      console.error('Failed to log quiz activity', e);
+    }
+  }, [user]);
+
   // Fetch Words
   useEffect(() => {
     async function fetchWords() {
@@ -52,7 +67,14 @@ function QuizContent() {
         if (res.ok) {
           const data = await res.json();
           // Optional: Shuffle data?
-          setVocabularies(data.sort(() => Math.random() - 0.5));
+          const shuffled = data.sort(() => Math.random() - 0.5);
+          setVocabularies(shuffled);
+          
+          // Log Quiz Started
+          logQuizActivity(ActivityType.QUIZ_STARTED, { 
+            clusterId, 
+            wordCount: shuffled.length 
+          });
         }
       } catch (error) {
         console.error("Failed to fetch words", error);
@@ -61,9 +83,17 @@ function QuizContent() {
       }
     }
     fetchWords();
-  }, [user, clusterId]);
+  }, [user, clusterId, logQuizActivity]);
 
   const handleNext = useCallback((known: boolean) => {
+    const currentVocab = vocabularies[quizState.currentIndex];
+    
+    // Log Word Activity
+    logQuizActivity(
+      known ? ActivityType.WORD_CORRECT : ActivityType.WORD_INCORRECT,
+      { wordId: currentVocab._id, word: currentVocab.word }
+    );
+
     setQuizState(prev => {
       const nextIndex = prev.currentIndex + 1;
       const newScore = known ? prev.score + 1 : prev.score;
@@ -72,6 +102,14 @@ function QuizContent() {
         : [...prev.wrongAnswers, prev.currentIndex];
 
       if (nextIndex >= vocabularies.length) {
+        // Log Quiz Completed
+        logQuizActivity(ActivityType.QUIZ_COMPLETED, {
+          score: newScore,
+          total: vocabularies.length,
+          percentage: Math.round((newScore / vocabularies.length) * 100),
+          clusterId
+        });
+
         return {
           ...prev,
           score: newScore,
@@ -89,7 +127,7 @@ function QuizContent() {
         wrongAnswers: newWrongAnswers,
       };
     });
-  }, [vocabularies.length]);
+  }, [vocabularies, quizState.currentIndex, logQuizActivity, clusterId]);
 
   const handleRestart = useCallback(() => {
     setQuizState({
