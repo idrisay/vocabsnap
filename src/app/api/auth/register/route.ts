@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import client from '@/lib/mongodb';
 import bcrypt from 'bcryptjs';
+import { logActivity } from '@/lib/activity';
+import { ActivityType } from '@/types/types';
+import { waitUntil } from '@vercel/functions';
 
 export async function POST(request: Request) {
   try {
@@ -29,11 +32,14 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    await users.insertOne({
+    const result = await users.insertOne({
       nickname,
       password: hashedPassword,
       joinedAt: new Date(),
     });
+
+    // Log Activity (Non-blocking)
+    waitUntil(logActivity(result.insertedId.toString(), ActivityType.USER_REGISTERED));
 
     return NextResponse.json(
       { message: 'User registered successfully' },

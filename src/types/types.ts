@@ -1,4 +1,5 @@
 export enum ActivityType {
+  USER_REGISTERED = 'user_registered',
   USER_LOGIN = 'user_login',
   USER_LOGOUT = 'user_logout',
   WORD_ADDED = 'word_added',

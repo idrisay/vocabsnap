@@ -263,6 +263,7 @@ export default function AdminPage() {
 const formatActivity = (act: any) => {
     const { type, metadata } = act;
     switch (type) {
+        case 'user_registered': return 'registered as a new user';
         case 'user_login': return 'logged in';
         case 'user_logout': return 'logged out';
         case 'word_added': return `added word: "${metadata.word}"`;
