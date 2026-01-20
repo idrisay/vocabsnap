@@ -1,27 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #020617;
+  --background: #f4f4f9;
+  --foreground: #1e1b4b;
   --card: #ffffff;
-  --card-foreground: #020617;
-  --border: #e2e8f0;
-  --muted: #f8fafc;
+  --card-foreground: #1e1b4b;
+  --border: #e2e2ed;
+  --muted: #f0f0f5;
   --muted-foreground: #64748b;
   --accent: #7c3aed;
   --accent-foreground: #ffffff;
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --soft-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -2px rgba(0, 0, 0, 0.02);
 }
 
 .dark {
-  --background: #020617;
-  --foreground: #f8fafc;
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
-  --border: #1e293b;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
+  --background: #08080a;
+  --foreground: #f0f0f5;
+  --card: #0c0c12;
+  --card-foreground: #f0f0f5;
+  --border: #1a1a24;
+  --muted: #12121a;
+  --muted-foreground: #8a8a9e;
   --accent: #8b5cf6;
   --accent-foreground: #ffffff;
+  --glass-bg: rgba(12, 12, 18, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.04);
+  --soft-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
 }
 
 @theme {
@@ -36,10 +42,30 @@
   --color-accent-foreground: var(--accent-foreground);
 }
 
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--soft-shadow);
+}
+
+.soft-shadow {
+  box-shadow: var(--soft-shadow);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  background-attachment: fixed;
 }
 
 /* 3D Transform utilities for card flip */
@@ -113,6 +139,19 @@ body {
   50% {
     opacity: 0.7;
   }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
 }
 
 .animate-fade-in {

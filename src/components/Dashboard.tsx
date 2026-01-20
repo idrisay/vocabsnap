@@ -427,8 +427,8 @@ export default function Dashboard({
     <div className="w-full max-w-7xl mx-auto space-y-8 relative">
       {/* Generic Modal */}
       {modal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-sm glass-card rounded-3xl p-8 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
             <h3
               className={`text-xl font-bold mb-2 ${
                 modal.type === "delete"
@@ -490,7 +490,7 @@ export default function Dashboard({
       )}
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-card border border-border rounded-2xl shadow-sm backdrop-blur-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-8 glass-card rounded-3xl soft-shadow transition-all duration-300">
         <div className="flex flex-col md:flex-row md:items-center gap-6">
           <ThemeToggle />
           <div>
@@ -573,14 +573,15 @@ export default function Dashboard({
           <button
             onClick={() => onStartQuiz(selectedClusterId || undefined)}
             disabled={vocabularies.length === 0}
-            className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-semibold shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-8 py-3.5 bg-accent hover:bg-accent/90 text-white rounded-2xl font-bold shadow-xl shadow-accent/25 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 overflow-hidden relative group"
           >
-            <span>Start Quiz</span>
-            <span className="text-xl">→</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-transform" />
+            <span className="relative">Start Quiz</span>
+            <span className="text-xl group-hover:translate-x-1 transition-transform relative">→</span>
           </button>
           <button
             onClick={onLogout}
-            className="px-4 py-3 bg-muted hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-200 border border-border rounded-xl text-muted-foreground transition-all font-medium"
+            className="px-6 py-3.5 bg-muted hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-200 border border-border rounded-2xl text-muted-foreground transition-all font-bold active:scale-95"
           >
             Logout
           </button>
@@ -588,9 +589,9 @@ export default function Dashboard({
       </div>
 
       <div className="grid md:grid-cols-12 gap-8">
-        {/* Sidebar (Clusters) */}
-        <div className="md:col-span-3 space-y-4">
-          <div className="bg-card border border-border rounded-2xl p-4 shadow-sm backdrop-blur-sm sticky top-6">
+        {/* Sidebar (Decks) */}
+        <div className="md:col-span-3 space-y-6">
+          <div className="glass-card rounded-3xl p-6 soft-shadow sticky top-6 transition-all duration-300">
             <div className="flex items-center justify-between mb-4 px-2">
               <h2 className="text-lg font-semibold text-foreground">Decks</h2>
               <button
@@ -622,32 +623,34 @@ export default function Dashboard({
             <div className="space-y-2">
               <button
                 onClick={() => setSelectedClusterId(null)}
-                className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium flex items-center justify-between ${
+                className={`w-full text-left px-5 py-4 rounded-2xl transition-all font-bold flex items-center justify-between group active:scale-95 ${
                   selectedClusterId === null
-                    ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-accent text-white shadow-xl shadow-accent/25"
+                    : "text-muted-foreground hover:bg-accent/5 hover:text-accent"
                 }`}
               >
                 <span>All Words</span>
+                <span className={`w-2 h-2 rounded-full transition-all ${selectedClusterId === null ? 'bg-white' : 'bg-transparent group-hover:bg-accent/40'}`} />
               </button>
               {clusters.map((c: any) => (
                 <button
                   key={c._id}
                   onClick={() => setSelectedClusterId(c._id)}
-                  className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium truncate ${
+                  className={`w-full text-left px-5 py-4 rounded-2xl transition-all font-bold truncate group active:scale-95 flex items-center justify-between ${
                     selectedClusterId === c._id
-                      ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
+                      ? "bg-accent text-white shadow-xl shadow-accent/25"
+                      : "text-muted-foreground hover:bg-accent/5 hover:text-accent border border-transparent"
                   }`}
                 >
-                  {c.name}
+                  <span className="truncate">{c.name}</span>
+                  <span className={`w-2 h-2 rounded-full transition-all shrink-0 ml-2 ${selectedClusterId === c._id ? 'bg-white' : 'bg-transparent group-hover:bg-accent/40'}`} />
                 </button>
               ))}
             </div>
           </div>
 
           {isAdmin && (
-            <div className="bg-purple-600/5 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-500/30 rounded-2xl p-4 backdrop-blur-sm">
+            <div className="bg-purple-600/5 dark:bg-purple-500/10 rounded-3xl p-6 soft-shadow border border-purple-200/50 dark:border-purple-500/20 backdrop-blur-sm">
               <div className="mb-4 px-2 flex items-center justify-between border-b border-purple-100 dark:border-purple-500/20 pb-2">
                 <div>
                     <h2 className="text-lg font-bold text-purple-700 dark:text-purple-300">
@@ -675,10 +678,10 @@ export default function Dashboard({
                             setViewingUserId(user._id);
                             setSelectedClusterId(null);
                         }}
-                        className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium truncate ${
+                        className={`w-full text-left px-4 py-3.5 rounded-2xl transition-all font-bold truncate active:scale-95 ${
                             viewingUserId === user._id
-                            ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            ? "bg-accent text-white shadow-lg shadow-accent/20"
+                            : "text-muted-foreground hover:bg-white dark:hover:bg-purple-500/10 hover:text-accent"
                         }`}
                         >
                         Me ({user.nickname})
@@ -692,10 +695,10 @@ export default function Dashboard({
                                 setViewingUserId(u._id);
                                 setSelectedClusterId(null);
                             }}
-                            className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium truncate ${
+                            className={`w-full text-left px-4 py-3.5 rounded-2xl transition-all font-bold truncate active:scale-95 ${
                                 viewingUserId === u._id
-                                ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
-                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                ? "bg-accent text-white shadow-lg shadow-accent/20"
+                                : "text-muted-foreground hover:bg-white dark:hover:bg-purple-500/10 hover:text-accent"
                             }`}
                             >
                             {u.nickname}
@@ -712,7 +715,7 @@ export default function Dashboard({
         <div className="md:col-span-9 space-y-8">
           {/* Context Header */}
           {selectedClusterId && (
-            <div className="flex items-center justify-between bg-card border border-border rounded-xl p-4 shadow-sm">
+            <div className="flex items-center justify-between glass-card rounded-2xl p-6 soft-shadow">
               <h2 className="text-xl font-bold text-foreground">
                 {clusters.find((c) => c._id === selectedClusterId)?.name ||
                   "Deck"}
@@ -737,8 +740,8 @@ export default function Dashboard({
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Add Widget */}
-            <div className="space-y-4">
-              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm backdrop-blur-sm">
+            <div className="space-y-6">
+              <div className="glass-card rounded-3xl p-8 soft-shadow transition-all duration-300">
                 <div className="flex items-center gap-4 mb-6 border-b border-border pb-4">
                   <button
                     onClick={() => setActiveTab("manual")}
@@ -756,104 +759,113 @@ export default function Dashboard({
 
                 {activeTab === "manual" ? (
                   <form onSubmit={handleAddWord} className="space-y-4">
-                    <div>
-                      <label className="text-xs font-uppercase text-muted-foreground font-semibold tracking-wider">
-                        TARGET WORD
+                    <div className="group">
+                      <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest ml-1 mb-2 block group-focus-within:text-accent transition-colors">
+                        Target Word
                       </label>
                       <input
                         value={word}
                         onChange={(e) => setWord(e.target.value)}
                         placeholder="e.g., Hola"
-                        className="w-full mt-1 bg-muted border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-medium"
+                        className="w-full bg-muted/50 border border-border rounded-2xl px-5 py-4 text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all font-bold placeholder:font-medium placeholder:text-muted-foreground/40"
                         required
                       />
                     </div>
 
-                    <div>
-                      <label className="text-xs font-uppercase text-muted-foreground font-bold tracking-wider">
-                        MEANING
+                    <div className="group">
+                      <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest ml-1 mb-2 block group-focus-within:text-accent transition-colors">
+                        Meaning
                       </label>
                       <input
                         value={meaning}
                         onChange={(e) => setMeaning(e.target.value)}
                         placeholder="e.g., Hello"
-                        className="w-full mt-1 bg-muted border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                        className="w-full bg-muted/50 border border-border rounded-2xl px-5 py-4 text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all font-bold placeholder:font-medium placeholder:text-muted-foreground/40"
                         required
                       />
                     </div>
 
-                    <div>
-                      <label className="text-xs font-uppercase text-muted-foreground font-bold tracking-wider">
-                        EXAMPLE
+                    <div className="group">
+                      <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest ml-1 mb-2 block group-focus-within:text-accent transition-colors">
+                        Example
                       </label>
                       <textarea
                         value={example}
                         onChange={(e) => setExample(e.target.value)}
-                        rows={1}
-                        className="w-full mt-1 bg-muted border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all resize-none"
+                        rows={2}
+                        placeholder="Optional"
+                        className="w-full bg-muted/50 border border-border rounded-2xl px-5 py-4 text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all font-medium placeholder:text-muted-foreground/40 resize-none"
                       />
                     </div>
 
-                    <div>
-                      <label className="text-xs font-uppercase text-muted-foreground font-bold tracking-wider">
-                        TIP
+                    <div className="group">
+                      <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest ml-1 mb-2 block group-focus-within:text-accent transition-colors">
+                        Memory Tip
                       </label>
                       <input
                         value={tip}
                         onChange={(e) => setTip(e.target.value)}
-                        className="w-full mt-1 bg-muted border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                        placeholder="Optional"
+                        className="w-full bg-muted/50 border border-border rounded-2xl px-5 py-4 text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all font-medium placeholder:text-muted-foreground/40"
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold rounded-xl shadow-lg transition-all transform active:scale-95"
+                      className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      {submitting ? "Adding..." : "Add to List"}
+                      {submitting ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        "Add to List"
+                      )}
                     </button>
                   </form>
                 ) : (
                   <form onSubmit={handleImportCSV} className="space-y-4">
-                    <div>
-                      <label className="text-xs font-uppercase text-muted-foreground font-semibold tracking-wider">
-                        PASTE CSV TEXT
-                      </label>
-                      <textarea
-                        value={csvText}
-                        onChange={(e) => setCsvText(e.target.value)}
-                        placeholder={"Word,Meaning,Example,Tip"}
-                        rows={8}
-                        className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-foreground text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all resize-none"
-                        required
-                      />
+                    <div className="space-y-6">
+                      <div className="group">
+                        <label className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest ml-1 mb-2 block group-focus-within:text-accent transition-colors">
+                          CSV Content
+                        </label>
+                        <textarea
+                          value={csvText}
+                          onChange={(e) => setCsvText(e.target.value)}
+                          placeholder="Word, Meaning, Example, Tip"
+                          rows={6}
+                          className="w-full bg-muted/50 border border-border rounded-2xl px-5 py-4 text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all font-medium placeholder:text-muted-foreground/40 resize-none"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={submitting || !csvText.trim()}
+                        className="w-full py-4 bg-accent hover:bg-accent/90 text-white rounded-2xl font-bold shadow-lg shadow-accent/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {submitting ? (
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          "Import CSV"
+                        )}
+                      </button>
                     </div>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold rounded-xl shadow-lg transition-all transform active:scale-95"
-                    >
-                      {submitting ? "Importing..." : "Import Vocabulary"}
-                    </button>
                   </form>
                 )}
               </div>
             </div>
 
             {/* List Widget */}
-            <div>
-              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm backdrop-blur-sm h-[650px] flex flex-col">
-                <div className="flex items-center justify-between mb-6 shrink-0">
-                  <h2 className="text-xl font-semibold text-foreground flex flex-col md:flex-row">
-                    <span>Collection</span>
-                    <span className="ml-0 md:ml-3 text-xs font-normal text-muted-foreground bg-muted px-2 py-1 rounded-md border border-border">
-                      {vocabularies.length} words
-                    </span>
-                  </h2>
+              <div className="glass-card rounded-3xl p-8 soft-shadow h-[800px] flex flex-col transition-all duration-300">
+                <div className="flex items-center justify-between mb-8 border-b border-border pb-6">
+                  <div className="flex flex-col">
+                    <h2 className="text-2xl font-bold text-foreground">Collection</h2>
+                    <p className="text-xs text-muted-foreground font-medium mt-1">
+                      {vocabularies.length} {vocabularies.length === 1 ? 'word' : 'words'} saved
+                    </p>
+                  </div>
                   <button
                     onClick={() => onStartQuiz(selectedClusterId || undefined)}
-                    disabled={vocabularies.length === 0}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-semibold shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 py-2.5 bg-accent hover:bg-accent/90 text-white rounded-xl font-bold shadow-lg shadow-accent/20 transition-all text-sm"
                   >
                     Start Quiz
                   </button>
@@ -873,51 +885,48 @@ export default function Dashboard({
                       )}
                     </div>
                   ) : (
-                    <div className="space-y-3 pb-2">
+                    <div className="space-y-4 pr-2">
                       {vocabularies.map((vocab: any) => (
                         <div
                           key={vocab._id}
-                          className="group flex items-start gap-4 p-4 bg-muted hover:bg-accent/5 border border-border hover:border-accent/20 rounded-xl transition-all shadow-sm"
+                          className="group relative bg-white/50 dark:bg-white/5 border border-border/50 rounded-2xl p-5 hover:bg-white dark:hover:bg-white/10 transition-all duration-300 soft-shadow hover:-translate-y-1"
                         >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-baseline gap-3 mb-1">
-                              <h3 className="text-lg font-bold text-foreground truncate">
-                                {vocab.word}
-                              </h3>
-                              <span className="text-purple-600 dark:text-purple-300 truncate font-medium">
-                                {vocab.meaning}
-                              </span>
-                            </div>
-                            {(vocab.example || vocab.memoryTip) && (
-                              <div className="text-sm text-muted-foreground space-y-0.5">
-                                {vocab.example && <p className="italic">Ex: {vocab.example}</p>}
-                                {vocab.memoryTip && (
-                                  <p className="text-amber-600 dark:text-yellow-500/70 italic font-medium">
-                                    Tip: {vocab.memoryTip}
-                                  </p>
-                                )}
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-3">
+                                <h3 className="text-lg font-bold text-foreground">
+                                  {vocab.word}
+                                </h3>
+                                <span className="text-sm font-medium text-accent/60">
+                                  {vocab.meaning}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                          <button
-                            onClick={(e) => requestDelete(vocab._id, e)}
-                            className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                            title="Delete word"
-                          >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                              {vocab.example && (
+                                <p className="text-sm text-muted-foreground italic leading-relaxed">
+                                  "{vocab.example}"
+                                </p>
+                              )}
+                              {vocab.memoryTip && (
+                                <div className="flex items-start gap-2 pt-1">
+                                  <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider shrink-0 mt-0.5">
+                                    Tip
+                                  </span>
+                                  <p className="text-xs text-amber-600/80 dark:text-amber-400/80 font-medium">
+                                    {vocab.memoryTip}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              onClick={(e) => requestDelete(vocab._id, e)}
+                              className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all active:scale-95"
+                              title="Delete word"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -927,7 +936,6 @@ export default function Dashboard({
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }
