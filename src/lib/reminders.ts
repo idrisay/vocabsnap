@@ -17,30 +17,25 @@ export async function checkAndSendReminders() {
     const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
 
     for (const user of subscribedUsers) {
-      // Check if it's 20:00 in user's timezone
-      const userTime = new Intl.DateTimeFormat('en-US', {
-        timeZone: user.timezone,
-        hour: '2-digit',
-        hour12: false
-      }).format(now);
+      const lastSent = user.lastReminderSentAt ? new Date(user.lastReminderSentAt) : null;
+      const tenMinutesInMs = 10 * 60 * 1000;
+      
+      const shouldSend = !lastSent || (now.getTime() - lastSent.getTime() >= tenMinutesInMs);
 
-      const hour = parseInt(userTime, 10);
-
-      // If it's 20:00 and we haven't sent a reminder today
-      if (hour === 20 && user.lastReminderSent !== todayStr) {
-        console.log(`Sending daily reminder to user ${user.nickname} (${user._id})`);
+      if (shouldSend) {
+        console.log(`Sending 10-minute reminder to user ${user.nickname} (${user._id})`);
         
         const result = await sendNotification(
           user.pushSubscription,
-          'VocabSnap Reminder',
-          'Time to practice! Review your collection or check your mistakes.',
+          'Practice Reminder',
+          'Ready to repeat your collections? A quick 5-minute review keeps the memory fresh!',
           '/dashboard'
         );
 
         if (result.success) {
           await users.updateOne(
             { _id: user._id },
-            { $set: { lastReminderSent: todayStr } }
+            { $set: { lastReminderSentAt: now } }
           );
         } else if (result.expired) {
           // Clean up expired subscriptions

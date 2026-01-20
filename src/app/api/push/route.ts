@@ -28,7 +28,7 @@ export async function POST(request: Request) {
             pushSubscription: subscription,
             notificationsEnabled: true,
             timezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-            lastReminderSent: null
+            lastReminderSentAt: null
           } 
         }
       );
