@@ -151,22 +151,24 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Activity Graph */}
-          <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-6 shadow-sm backdrop-blur-sm">
-            <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-foreground">
-              <span className="w-2 h-6 bg-purple-600 rounded-full"></span>
+          <div className="lg:col-span-2 glass-card rounded-3xl p-8 border-glass-border">
+            <h3 className="text-xl font-bold mb-8 flex items-center gap-3 text-foreground">
+              <span className="w-1.5 h-6 bg-accent rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)]"></span>
               Activity Trends (Last 14 Days)
             </h3>
-            <ActivityGraph data={stats?.trends || []} />
+            <div className="h-[250px]">
+                <ActivityGraph data={stats?.trends || []} />
+            </div>
           </div>
 
           {/* Type Breakdown */}
-          <div className="bg-card border border-border rounded-3xl p-6 shadow-sm backdrop-blur-sm">
-            <h3 className="text-xl font-bold mb-6 text-foreground">Action Breakdown</h3>
-            <div className="space-y-4 overflow-y-auto max-h-[250px] custom-scrollbar pr-2">
+          <div className="glass-card rounded-3xl p-8 border-glass-border">
+            <h3 className="text-xl font-bold mb-8 text-foreground">Action Breakdown</h3>
+            <div className="space-y-3 overflow-y-auto max-h-[300px] custom-scrollbar pr-2">
                {stats?.breakdown?.sort((a:any, b:any) => b.count - a.count).map((item: any) => (
-                 <div key={item._id} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border">
+                 <div key={item._id} className="flex items-center justify-between p-4 bg-muted/20 hover:bg-muted/40 rounded-2xl border border-border/10 transition-all">
                     <span className="text-sm font-semibold text-muted-foreground capitalize">{item._id.replace(/_/g, ' ')}</span>
-                    <span className="text-sm font-bold text-purple-700 dark:text-purple-400 bg-purple-500/10 px-2 py-1 rounded-lg">{item.count}</span>
+                    <span className="text-xs font-bold text-accent bg-accent/5 px-3 py-1.5 rounded-xl border border-accent/10">{item.count}</span>
                  </div>
                ))}
             </div>
@@ -174,32 +176,39 @@ export default function AdminPage() {
         </div>
 
         {/* Users & Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
             
             {/* User List */}
-            <div className="bg-card border border-border rounded-3xl p-6 shadow-sm backdrop-blur-sm overflow-hidden flex flex-col">
-                <h3 className="text-xl font-bold mb-6 text-foreground">Registered Users</h3>
+            <div className="glass-card rounded-3xl p-8 border-glass-border overflow-hidden flex flex-col">
+                <h3 className="text-xl font-bold mb-8 text-foreground">Registered Users</h3>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="text-xs uppercase text-muted-foreground border-b border-border">
-                                <th className="pb-4 font-bold px-2 text-muted-foreground/60 tracking-wider">Nickname</th>
-                                <th className="pb-4 font-bold px-2 text-center text-muted-foreground/60 tracking-wider">Activities</th>
-                                <th className="pb-4 font-bold px-2 text-right text-muted-foreground/60 tracking-wider">Joined</th>
-                                <th className="pb-4 font-bold px-2 text-right text-muted-foreground/60 tracking-wider w-20">Actions</th>
+                            <tr className="text-[10px] uppercase text-muted-foreground border-b border-border/50">
+                                <th className="pb-4 font-black px-2 tracking-widest opacity-60">Nickname</th>
+                                <th className="pb-4 font-black px-2 text-center tracking-widest opacity-60">Activities</th>
+                                <th className="pb-4 font-black px-2 text-right tracking-widest opacity-60">Joined</th>
+                                <th className="pb-4 font-black px-2 text-right tracking-widest opacity-60 w-20">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-border">
+                        <tbody className="divide-y divide-border/30">
                             {stats?.users?.map((u: any) => (
-                                <tr key={u._id} className="text-sm group hover:bg-accent/5 transition-colors">
-                                    <td className="py-4 px-2 font-bold text-foreground">{u.nickname} {u.nickname === 'idrisay' && <span className="text-[10px] bg-purple-600/10 text-purple-700 dark:text-purple-400 px-1.5 py-0.5 rounded ml-2 font-black">ADMIN</span>}</td>
-                                    <td className="py-4 px-2 text-center text-purple-600 dark:text-purple-400 font-black">{u.activityCount}</td>
-                                    <td className="py-4 px-2 text-right text-muted-foreground font-medium">{new Date(u.joinedAt).toLocaleString()}</td>
-                                    <td className="py-4 px-2 text-right">
+                                <tr key={u._id} className="text-sm group hover:bg-muted/30 transition-colors">
+                                    <td className="py-5 px-2 font-bold text-foreground">
+                                        <div className="flex items-center gap-2">
+                                            {u.nickname} 
+                                            {u.nickname === 'idrisay' && <span className="text-[9px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-black border border-accent/20">ADMIN</span>}
+                                        </div>
+                                    </td>
+                                    <td className="py-5 px-2 text-center">
+                                        <span className="text-accent font-black bg-accent/5 px-2.5 py-1 rounded-lg border border-accent/10">{u.activityCount}</span>
+                                    </td>
+                                    <td className="py-5 px-2 text-right text-muted-foreground font-medium text-xs">{new Date(u.joinedAt).toLocaleString()}</td>
+                                    <td className="py-5 px-2 text-right">
                                         {u.nickname !== 'idrisay' && (
                                             <button 
                                                 onClick={() => deleteUser(u._id, u.nickname)}
-                                                className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors group/del"
+                                                className="p-2.5 text-red-500 hover:bg-red-500/10 rounded-xl transition-all hover:scale-110 active:scale-95 group/del border border-transparent hover:border-red-500/20"
                                                 title="Delete User"
                                             >
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -216,14 +225,14 @@ export default function AdminPage() {
             </div>
 
             {/* Live Feed */}
-            <div className="bg-card border border-border rounded-3xl p-6 shadow-sm backdrop-blur-sm flex flex-col">
-                <h3 className="text-xl font-bold mb-6 flex items-center justify-between text-foreground">
+            <div className="glass-card rounded-3xl p-8 border-glass-border flex flex-col">
+                <h3 className="text-xl font-bold mb-8 text-foreground">
                     Live Activity Feed
                 </h3>
                 <div className="space-y-4 overflow-y-auto max-h-[500px] custom-scrollbar pr-2">
                     {activities.map((act) => (
-                        <div key={act._id} className="flex items-start gap-4 p-4 bg-muted/30 border border-border rounded-2xl cursor-pointer hover:border-accent/10 transition-all">
-                            <div className={`p-2 rounded-xl shrink-0 ${
+                        <div key={act._id} className="flex items-start gap-4 p-5 bg-muted/10 border border-border/10 rounded-2xl cursor-pointer hover:bg-muted/20 hover:scale-[1.01] transition-all">
+                            <div className={`p-2.5 rounded-xl shrink-0 shadow-sm ${
                                 act.type.includes('login') ? 'bg-blue-500/20 text-blue-400' :
                                 act.type.includes('word_added') ? 'bg-green-500/20 text-green-400' :
                                 act.type.includes('quiz') ? 'bg-purple-500/20 text-purple-400' :
@@ -234,11 +243,11 @@ export default function AdminPage() {
                                 </svg>
                             </div>
                             <div className="min-w-0 flex-1">
-                                <p className="text-sm text-foreground">
+                                <p className="text-sm text-foreground leading-relaxed">
                                     <span className="font-bold text-foreground mr-2">{act.nickname || 'Unknown'}</span>
                                     {formatActivity(act)}
                                 </p>
-                                <p className="text-[10px] text-muted-foreground font-medium mt-1">{new Date(act.createdAt).toLocaleString()}</p>
+                                <p className="text-[10px] text-muted-foreground font-bold mt-2 opacity-60">{new Date(act.createdAt).toLocaleString()}</p>
                             </div>
                         </div>
                     ))}
@@ -281,10 +290,10 @@ const formatActivity = (act: any) => {
 
 const StatCard = ({ title, value, icon, color }: any) => {
   const colors: any = {
-    blue: "text-blue-400 bg-blue-500/10",
-    purple: "text-purple-400 bg-purple-500/10",
-    green: "text-green-400 bg-green-500/10",
-    pink: "text-pink-400 bg-pink-500/10",
+    blue: "text-blue-500 bg-blue-500/10 border-blue-500/20 shadow-blue-500/10",
+    purple: "text-indigo-500 bg-indigo-500/10 border-indigo-500/20 shadow-indigo-500/10",
+    green: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/10",
+    pink: "text-rose-500 bg-rose-500/10 border-rose-500/20 shadow-rose-500/10",
   };
 
   const icons: any = {
@@ -295,16 +304,17 @@ const StatCard = ({ title, value, icon, color }: any) => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-3xl p-6 shadow-sm backdrop-blur-sm cursor-pointer hover:border-accent/20 transition-all group">
-      <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-2xl ${colors[color]} group-hover:scale-110 transition-transform`}>
+    <div className="glass-card rounded-3xl p-6 border-glass-border cursor-pointer hover:translate-y-[-4px] active:translate-y-0 transition-all group overflow-hidden relative">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-full -mr-12 -mt-12 blur-3xl group-hover:bg-accent/10 transition-all pointer-events-none" />
+      <div className="flex items-center gap-5 relative z-10">
+        <div className={`p-4 rounded-2xl border shadow-lg ${colors[color]} group-hover:scale-110 transition-transform duration-300`}>
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             {icons[icon]}
           </svg>
         </div>
         <div>
-          <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">{title}</p>
-          <p className="text-2xl font-black text-foreground">{value}</p>
+          <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1 opacity-70">{title}</p>
+          <p className="text-3xl font-black text-foreground tabular-nums tracking-tight">{value}</p>
         </div>
       </div>
     </div>

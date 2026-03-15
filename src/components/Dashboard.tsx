@@ -650,8 +650,8 @@ export default function Dashboard({
           </div>
 
           {isAdmin && (
-            <div className="bg-purple-600/5 dark:bg-purple-500/10 rounded-3xl p-6 soft-shadow border border-purple-200/50 dark:border-purple-500/20 backdrop-blur-sm">
-              <div className="mb-4 px-2 flex items-center justify-between border-b border-purple-100 dark:border-purple-500/20 pb-2">
+            <div className="bg-accent/5 dark:bg-accent/10 rounded-3xl p-6 soft-shadow border border-accent/20 dark:border-accent/40 backdrop-blur-sm">
+              <div className="mb-4 px-2 flex items-center justify-between border-b border-accent/10 dark:border-accent/20 pb-2">
                 <div>
                     <h2 className="text-lg font-bold text-purple-700 dark:text-purple-300">
                     Admin Panel
@@ -681,7 +681,7 @@ export default function Dashboard({
                         className={`w-full text-left px-4 py-3.5 rounded-2xl transition-all font-bold truncate active:scale-95 ${
                             viewingUserId === user._id
                             ? "bg-accent text-white shadow-lg shadow-accent/20"
-                            : "text-muted-foreground hover:bg-white dark:hover:bg-purple-500/10 hover:text-accent"
+                            : "text-muted-foreground hover:bg-muted/50 dark:hover:bg-accent/10 hover:text-foreground"
                         }`}
                         >
                         Me ({user.nickname})

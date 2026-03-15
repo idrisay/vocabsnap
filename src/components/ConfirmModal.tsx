@@ -30,7 +30,7 @@ export default function ConfirmModal({
         if (e.target === e.currentTarget) onCancel();
       }}
     >
-      <div className="w-full max-w-sm bg-card border border-border rounded-2xl p-6 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-sm glass-card rounded-3xl p-8 border-glass-border animate-in zoom-in-95 duration-200">
         
         {/* Decorative background blobs */}
         <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-3xl pointer-events-none ${variant === 'danger' ? 'bg-red-500/10' : 'bg-blue-500/10'}`} />
